@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard — NexATS</title>
+    
+    <script>(function () { var t = localStorage.getItem('ds_theme'); if (t === 'light') document.documentElement.classList.remove('dark'); else document.documentElement.classList.add('dark'); })();</script>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700;800&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <script>
+        tailwind.config = { 
+            darkMode: 'class', 
+            theme: { 
+                extend: { 
+                    fontFamily: { 
+                        sans: ['Plus Jakarta Sans', 'sans-serif'], 
+                        mono: ['JetBrains Mono', 'monospace'],
+                        display: ['Plus Jakarta Sans', 'sans-serif']
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f5f3ff', 100: '#ede9fe', 200: '#ddd6fe', 300: '#c4b5fd', 400: '#a78bfa',
+                            500: '#8b5cf6', 600: '#7c3aed', 700: '#6d28d9', 800: '#5b21b6', 900: '#4c1d95',
+                        }
+                    }
+                } 
+            } 
+        }
+    </script>
+
+    <style>
+        :root { --g-brand: #7c3aed; }
+        body { background-color: #fafafa; color: #111827; transition: background-color 0.3s, color 0.3s; }
+        html.dark body { background-color: #050d1e; color: #f3f4f6; }
+
+        .g-divider { border-color: #e5e7eb; }
+        html.dark .g-divider { border-color: rgba(255,255,255,0.08); }
+
+        .g-sub-text { color: #6b7280; }
+        html.dark .g-sub-text { color: #9ca3af; }
+
+        .g-btn { background-color: var(--g-brand); color: white; transition: all 0.2s; text-align: center; display: inline-block; }
+        html.dark .g-btn { background-color: rgba(167, 139, 250, 0.15); color: #c4b5fd; border: 1px solid rgba(167, 139, 250, 0.3); }
+        html.dark .g-btn:hover { background-color: rgba(167, 139, 250, 0.25); box-shadow: 0 4px 12px rgba(167, 139, 250, 0.2); }
+
+        .g-input {
+            width: 100%; padding: 0.6rem 1rem; border-radius: 0.75rem; border: 1px solid #e5e7eb;
+            background: #fff; font-size: 0.85rem; transition: all 0.2s; color: #111827;
+        }
+        .g-input:focus { outline: none; border-color: var(--g-brand); box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1); }
+        html.dark .g-input { background: rgba(11, 22, 48, 0.5); border-color: rgba(255, 255, 255, 0.08); color: #f3f4f6; }
+        html.dark .g-input:focus { border-color: #a78bfa; box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.15); }
+
+        .grid-bg-light {
+            background-image: linear-gradient(to right, rgba(0, 0, 0, 0.03) 1px, transparent 1px),
+                              linear-gradient(to bottom, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+        html.dark .grid-bg-light {
+            background-image: linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+                              linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+        }
+        .logo-text { font-weight: 800; letter-spacing: -0.03em; }
+
+        .sidebar-link {
+            display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 1rem; border-radius: 0.75rem;
+            font-size: 0.9rem; font-weight: 600; color: #4b5563; transition: all 0.2s;
+        }
+        html.dark .sidebar-link { color: #9ca3af; }
+        .sidebar-link:hover { background: #f3f4f6; color: #111827; }
+        html.dark .sidebar-link:hover { background: rgba(255,255,255,0.05); color: #fff; }
+        
+        .sidebar-link.active {
+            background: #f5f3ff; color: var(--g-brand);
+        }
+        html.dark .sidebar-link.active {
+            background: rgba(167, 139, 250, 0.1); color: #c4b5fd;
+        }
+
+        .dash-card {
+            background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(20px);
+            border: 1px solid rgba(0, 0, 0, 0.04); border-radius: 1.25rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        html.dark .dash-card {
+            background: rgba(11, 22, 48, 0.5); border: 1px solid rgba(255, 255, 255, 0.06);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+        }
+        
+        .score-badge {
+            font-size: 0.65rem; font-weight: 800; padding: 0.15rem 0.4rem; border-radius: 0.3rem;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 10px; }
+        html.dark ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); }
+    </style>
+</head>
+
+<body class="grid-bg-light h-screen overflow-hidden flex text-gray-900 dark:text-gray-100">
+
+    <!-- ── Sidebar ── -->
+    <aside class="w-[260px] flex-shrink-0 border-r g-divider bg-white/70 dark:bg-[#050d1e]/80 backdrop-blur-xl flex flex-col z-20">
+        <!-- Logo -->
+        <div class="h-16 flex items-center px-6 border-b g-divider shrink-0">
+            <a href="/" class="flex items-center gap-2.5 group no-underline">
+                <div class="w-8 h-8 rounded-lg flex items-center justify-center font-mono font-black text-sm bg-brand-600 dark:bg-transparent dark:border dark:border-[rgba(167,139,250,.35)] text-white dark:text-[#c4b5fd] group-hover:scale-105 transition-transform">NX</div>
+                <span class="logo-text text-[1.1rem] text-gray-800 dark:text-[#e2f0ff] group-hover:text-brand-600 dark:group-hover:text-[#a78bfa] transition-colors">NexATS</span>
+            </a>
+        </div>
+
+        <!-- Navigation Links -->
+        <div class="flex-1 overflow-y-auto p-4 space-y-1">
+            <div class="text-[0.65rem] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2 px-3 mt-2">Overview</div>
+            
+            <a href="#" class="sidebar-link active">
+                <i class="ph ph-squares-four text-lg"></i> Dashboard
+            </a>
+            <a href="#" class="sidebar-link">
+                <i class="ph ph-briefcase text-lg"></i> Jobs
+                <span class="ml-auto bg-brand-100 text-brand-600 dark:bg-brand-900/30 dark:text-brand-300 text-[0.6rem] font-bold px-1.5 py-0.5 rounded">3</span>
+            </a>
+            <a href="#" class="sidebar-link">
+                <i class="ph ph-users text-lg"></i> Candidates
+            </a>
+            <a href="#" class="sidebar-link">
+                <i class="ph ph-calendar-blank text-lg"></i> Interviews
+                <span class="ml-auto w-1.5 h-1.5 bg-orange-500 rounded-full"></span>
+            </a>
+            
+            <div class="text-[0.65rem] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2 px-3 mt-6">Workspace</div>
+            
+            <a href="#" class="sidebar-link">
+                <i class="ph ph-chart-line-up text-lg"></i> Analytics
+            </a>
+            <a href="#" class="sidebar-link">
+                <i class="ph ph-users-three text-lg"></i> Team
+            </a>
+            <a href="#" class="sidebar-link">
+                <i class="ph ph-gear text-lg"></i> Settings
+            </a>
+        </div>
+
+        <!-- User Profile Bottom -->
+        <div class="p-4 border-t g-divider shrink-0">
+            <button class="w-full flex items-center gap-3 p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-white/5 transition-colors text-left">
+                <div class="w-9 h-9 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center text-blue-700 dark:text-blue-300 font-bold text-xs ring-2 ring-white dark:ring-[#050d1e]">SM</div>
+                <div class="flex-1 min-w-0">
+                    <div class="text-sm font-bold truncate">Subhash Maurya</div>
+                    <div class="text-[0.7rem] g-sub-text truncate">subhash@acme.inc</div>
+                </div>
+                <i class="ph ph-caret-up text-gray-400"></i>
+            </button>
+        </div>
+    </aside>
+
+    <!-- ── Main Content Area ── -->
+    <div class="flex flex-col flex-1 min-w-0 bg-transparent">
+        
+        <!-- Header -->
+        <header class="h-16 border-b g-divider bg-white/50 dark:bg-[#050d1e]/50 backdrop-blur-xl flex items-center justify-between px-6 shrink-0 z-10">
+            
+            <!-- Global Search -->
+            <div class="max-w-md w-full relative">
+                <i class="ph ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                <input type="text" placeholder="Search candidates, jobs, or skills... (Ctrl+K)" class="g-input pl-9 w-full bg-gray-50 dark:bg-white/5 border-transparent focus:border-brand-500 rounded-full hidden sm:block">
+            </div>
+
+            <div class="flex items-center gap-3">
+                <a href="#" class="g-btn px-4 py-2 rounded-full text-[0.8rem] text-sm font-bold shadow-sm hidden sm:inline-block">
+                    + New Job
+                </a>
+                
+                <button class="w-9 h-9 rounded-full flex items-center justify-center hover:bg-gray-100 dark:hover:bg-white/5 text-gray-500 dark:text-gray-400 transition relative">
+                    <i class="ph ph-bell text-lg"></i>
+                    <span class="absolute top-2 right-2 w-2 h-2 bg-red-500 border-2 border-white dark:border-[#050d1e] rounded-full"></span>
+                </button>
+                
+                <div class="h-5 border-l g-divider mx-1"></div>
+
+                <button onclick="dsToggleTheme()" class="w-9 h-9 rounded-full flex items-center justify-center hover:bg-gray-100 dark:hover:bg-white/5 text-gray-500 dark:text-gray-400 transition" id="theme-pill">
+                    <span id="theme-icon">🌙</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Scrollable Dashboard -->
+        <main class="flex-1 overflow-y-auto p-4 sm:p-8 relative">
+            <div class="absolute right-0 top-0 w-96 h-96 bg-brand-400/5 rounded-full blur-[100px] pointer-events-none -z-10"></div>
+            
+            <div class="max-w-6xl mx-auto space-y-8">
+                
+                <!-- Page Title -->
+                <div>
+                    <h1 class="text-2xl sm:text-3xl font-bold logo-text mb-1">Good morning, Subhash.</h1>
+                    <p class="g-sub-text text-sm">Here is what's happening with your pipeline today.</p>
+                </div>
+
+                <!-- Metrics Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <!-- Metric 1 -->
+                    <div class="dash-card p-5 group hover:-translate-y-1">
+                        <div class="w-10 h-10 rounded-xl bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400 flex items-center justify-center mb-3">
+                            <i class="ph-fill ph-briefcase text-xl"></i>
+                        </div>
+                        <div class="text-3xl font-black mb-1 logo-text">12</div>
+                        <div class="text-sm font-semibold g-sub-text">Active Jobs</div>
+                    </div>
+                    <!-- Metric 2 -->
+                    <div class="dash-card p-5 group hover:-translate-y-1">
+                        <div class="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 flex items-center justify-center mb-3">
+                            <i class="ph-fill ph-users text-xl"></i>
+                        </div>
+                        <div class="flex items-end gap-2 mb-1">
+                            <div class="text-3xl font-black logo-text">148</div>
+                            <span class="text-xs font-bold text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/30 px-1.5 py-0.5 rounded mb-1.5">+24 this week</span>
+                        </div>
+                        <div class="text-sm font-semibold g-sub-text">Total Candidates</div>
+                    </div>
+                    <!-- Metric 3 -->
+                    <div class="dash-card p-5 group hover:-translate-y-1">
+                        <div class="w-10 h-10 rounded-xl bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400 flex items-center justify-center mb-3">
+                            <i class="ph-fill ph-calendar-check text-xl"></i>
+                        </div>
+                        <div class="text-3xl font-black mb-1 logo-text">5</div>
+                        <div class="text-sm font-semibold g-sub-text">Interviews Today</div>
+                    </div>
+                    <!-- Metric 4 -->
+                    <div class="dash-card p-5 group hover:-translate-y-1">
+                        <div class="w-10 h-10 rounded-xl bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400 flex items-center justify-center mb-3">
+                            <i class="ph-fill ph-brain text-xl"></i>
+                        </div>
+                        <div class="text-3xl font-black mb-1 logo-text">38</div>
+                        <div class="text-sm font-semibold g-sub-text">AI Highlights Ready</div>
+                    </div>
+                </div>
+
+                <!-- Split Main Content -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    
+                    <!-- Left: Mini Kanban Pipeline -->
+                    <div class="lg:col-span-2 dash-card p-6 flex flex-col">
+                        <div class="flex items-center justify-between mb-6">
+                            <div>
+                                <h2 class="text-lg font-bold logo-text">Pipeline Pipeline Snapshot</h2>
+                                <p class="text-xs g-sub-text mt-0.5">Senior Frontend Engineer (Remote)</p>
+                            </div>
+                            <a href="#" class="text-sm font-semibold text-brand-600 dark:text-brand-400 hover:underline">View full board &rarr;</a>
+                        </div>
+
+                        <!-- Kanban Columns -->
+                        <div class="grid grid-cols-2 gap-4 flex-1">
+                            <!-- Column 1: Sourced -->
+                            <div class="bg-gray-50 dark:bg-white/5 rounded-xl p-3 border g-divider flex flex-col h-full">
+                                <div class="flex items-center justify-between mb-3 px-1">
+                                    <span class="text-xs font-bold text-gray-500 uppercase">Sourced</span>
+                                    <span class="w-5 h-5 rounded-full bg-gray-200 dark:bg-gray-700 text-[0.6rem] flex items-center justify-center font-bold">2</span>
+                                </div>
+                                
+                                <div class="space-y-2">
+                                    <!-- Card -->
+                                    <div class="bg-white dark:bg-[#081023] p-3 rounded-lg shadow-sm border g-divider hover:border-brand-500/50 transition cursor-pointer">
+                                        <div class="flex justify-between items-start mb-2">
+                                            <div class="flex items-center gap-2">
+                                                <div class="w-7 h-7 rounded bg-brand-100 text-brand-700 dark:bg-brand-900/30 dark:text-brand-300 font-bold text-[0.55rem] flex items-center justify-center">JD</div>
+                                                <div>
+                                                    <div class="text-xs font-bold">John Doe</div>
+                                                    <div class="text-[0.6rem] g-sub-text">React, TypeScript</div>
+                                                </div>
+                                            </div>
+                                            <span class="score-badge bg-green-100 text-green-700 dark:bg-green-500/10 dark:text-green-400">98% MATCH</span>
+                                        </div>
+                                    </div>
+                                    <!-- Card -->
+                                    <div class="bg-white dark:bg-[#081023] p-3 rounded-lg shadow-sm border g-divider hover:border-brand-500/50 transition cursor-pointer">
+                                        <div class="flex justify-between items-start mb-2">
+                                            <div class="flex items-center gap-2">
+                                                <div class="w-7 h-7 rounded bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300 font-bold text-[0.55rem] flex items-center justify-center">AS</div>
+                                                <div>
+                                                    <div class="text-xs font-bold">Alice Smith</div>
+                                                    <div class="text-[0.6rem] g-sub-text">Vue, JavaScript</div>
+                                                </div>
+                                            </div>
+                                            <span class="score-badge bg-yellow-100 text-yellow-700 dark:bg-yellow-500/10 dark:text-yellow-400">84% MATCH</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Column 2: Interviewing -->
+                            <div class="bg-blue-50/50 dark:bg-[rgba(56,182,255,.05)] rounded-xl p-3 border border-blue-100 dark:border-blue-500/30 flex flex-col h-full">
+                                <div class="flex items-center justify-between mb-3 px-1">
+                                    <span class="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase">Interviewing</span>
+                                    <span class="w-5 h-5 rounded-full bg-blue-200 dark:bg-blue-900/50 text-[0.6rem] text-blue-800 dark:text-blue-200 flex items-center justify-center font-bold">1</span>
+                                </div>
+                                <div class="space-y-2">
+                                    <!-- Card -->
+                                    <div class="bg-white dark:bg-[#081023] p-3 rounded-lg shadow-sm border border-blue-200 dark:border-blue-500/40 hover:border-brand-500/50 transition cursor-pointer">
+                                        <div class="flex justify-between items-start mb-2">
+                                            <div class="flex items-center gap-2">
+                                                <div class="w-7 h-7 rounded bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 font-bold text-[0.55rem] flex items-center justify-center">MT</div>
+                                                <div>
+                                                    <div class="text-xs font-bold">Michael Taylor</div>
+                                                    <div class="text-[0.6rem] g-sub-text">Svelte, CSS</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="mt-2 py-1.5 px-2 bg-gray-50 dark:bg-white/5 rounded border g-divider flex items-center gap-1.5">
+                                            <i class="ph-fill ph-calendar-check text-green-500 text-sm"></i>
+                                            <span class="text-[0.65rem] font-bold">Today, 2:00 PM</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- Right: Upcoming Tasks / Activity -->
+                    <div class="dash-card p-6">
+                        <div class="flex items-center gap-2 mb-6 text-orange-500">
+                            <i class="ph-fill ph-lightning text-xl"></i>
+                            <h2 class="text-lg font-bold logo-text text-gray-900 dark:text-white">AI Tasks & Activity</h2>
+                        </div>
+
+                        <div class="space-y-4">
+                            <!-- Activity Item -->
+                            <div class="flex gap-3">
+                                <div class="w-8 h-8 rounded-full bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 shrink-0 flex items-center justify-center mt-1">
+                                    <i class="ph ph-file-pdf"></i>
+                                </div>
+                                <div>
+                                    <div class="text-xs font-bold">Resume Parsing Complete</div>
+                                    <div class="text-[0.7rem] g-sub-text mt-0.5 leading-relaxed">NexATS AI processed 42 new applicants for Product Designer role. Found 3 strong matches.</div>
+                                    <div class="text-[0.65rem] font-bold text-brand-600 dark:text-brand-400 mt-1 cursor-pointer hover:underline">Review matches</div>
+                                </div>
+                            </div>
+                            
+                            <div class="h-px w-full g-divider border-t"></div>
+
+                            <!-- Activity Item -->
+                            <div class="flex gap-3">
+                                <div class="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 shrink-0 flex items-center justify-center mt-1">
+                                    <i class="ph ph-calendar-plus"></i>
+                                </div>
+                                <div>
+                                    <div class="text-xs font-bold">Self-Scheduled Interview</div>
+                                    <div class="text-[0.7rem] g-sub-text mt-0.5 leading-relaxed">Alex Rivera booked a technical screen for tomorrow at 11:00 AM.</div>
+                                </div>
+                            </div>
+
+                            <div class="h-px w-full g-divider border-t"></div>
+
+                            <!-- Activity Item -->
+                            <div class="flex gap-3">
+                                <div class="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 shrink-0 flex items-center justify-center mt-1">
+                                    <i class="ph ph-envelope-simple"></i>
+                                </div>
+                                <div>
+                                    <div class="text-xs font-bold">Offer Accepted</div>
+                                    <div class="text-[0.7rem] g-sub-text mt-0.5 leading-relaxed">Sarah Jenkins signed the offer letter for Marketing Manager.</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button class="w-full text-center py-2 mt-4 text-[0.7rem] font-bold text-gray-500 hover:text-gray-900 dark:hover:text-white transition">
+                            View all activity
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        function dsToggleTheme() {
+            var d = document.documentElement.classList.contains('dark');
+            if (d) { 
+                document.documentElement.classList.remove('dark'); 
+                localStorage.setItem('ds_theme', 'light'); 
+            } else { 
+                document.documentElement.classList.add('dark'); 
+                localStorage.setItem('ds_theme', 'dark'); 
+            }
+            dsUpdateToggle();
+        }
+        function dsUpdateToggle() {
+            var d = document.documentElement.classList.contains('dark');
+            var i = document.getElementById('theme-icon');
+            if (i) i.textContent = d ? '🌙' : '☀️';
+        }
+        dsUpdateToggle();
+    </script>
+</body>
+</html>

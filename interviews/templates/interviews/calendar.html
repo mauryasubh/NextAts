@@ -1,0 +1,306 @@
+{% extends 'base_app.html' %}
+{% block content %}
+<div class="space-y-6">
+    <!-- Page Header -->
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-xl font-bold logo-text mb-1">Interview Calendar</h1>
+            <p class="g-sub-text text-[0.75rem]">Manage your recruitment schedule and candidate evaluations.</p>
+        </div>
+        <div class="flex items-center gap-3">
+            <button onclick="openScheduleModal()" class="g-btn px-4 py-2 rounded-xl font-bold text-[0.75rem] shadow-lg shadow-brand-500/20">
+                <i class="ph ph-calendar-plus mr-1.5"></i> Schedule Interview
+            </button>
+        </div>
+    </div>
+
+    <!-- Calendar Container -->
+    <div class="dash-card p-4 min-h-[500px]">
+        <div id="calendar"></div>
+    </div>
+</div>
+
+{% include 'interviews/partials/schedule_modal.html' %}
+{% include 'interviews/partials/event_detail_modal.html' %}
+
+<!-- Custom Cancel Confirmation Modal -->
+<div id="cancelConfirmModal" class="fixed inset-0 z-[110] hidden overflow-y-auto" role="dialog" aria-modal="true">
+    <div class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm transition-opacity" onclick="closeCancelModal()"></div>
+    <div class="flex min-h-screen items-center justify-center p-4">
+        <div class="relative w-full max-w-sm rounded-2xl bg-white dark:bg-[#0b1630] p-6 shadow-2xl border dark:border-white/10 transform transition-all">
+            <div class="flex flex-col items-center text-center space-y-4">
+                <div class="w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center text-red-500">
+                    <i class="ph ph-warning-circle text-3xl"></i>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-1">Cancel Interview?</h3>
+                    <p class="text-[0.8rem] text-gray-500 dark:text-gray-400">Are you sure you want to cancel this interview? This action cannot be undone and candidates will be notified.</p>
+                </div>
+            </div>
+            <div class="mt-6 flex gap-3">
+                <button onclick="closeCancelModal()" class="flex-1 px-4 py-2 rounded-xl border g-divider font-bold text-[0.8rem] text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/5 transition-all">
+                    Keep It
+                </button>
+                <button onclick="confirmCancelInterview()" class="flex-1 px-4 py-2 rounded-xl bg-red-500 text-white font-bold text-[0.8rem] shadow-lg shadow-red-500/20 hover:bg-red-600 transition-all">
+                    Yes, Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- FullCalendar Dependencies moved to base_app.html -->
+
+<style>
+    /* FullCalendar Dark Theme Overrides */
+    .fc { font-family: inherit; color: inherit; }
+    .fc .fc-toolbar-title { font-size: 1rem; font-weight: 800; }
+    .fc .fc-button { 
+        background-color: rgba(255, 255, 255, 0.05) !important; 
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        color: inherit !important;
+        font-weight: 700 !important;
+        text-transform: capitalize !important;
+        padding: 0.4rem 0.8rem !important;
+        border-radius: 0.6rem !important;
+        transition: all 0.2s !important;
+        font-size: 0.75rem !important;
+    }
+    .fc .fc-button:hover { background-color: rgba(255, 255, 255, 0.1) !important; }
+    .fc .fc-button-active { background-color: var(--g-brand) !important; color: white !important; border-color: var(--g-brand) !important; }
+    
+    .fc-theme-standard td, .fc-theme-standard th { border-color: rgba(255, 255, 255, 0.05); }
+    .fc-theme-standard .fc-scrollgrid { border-color: rgba(255, 255, 255, 0.05); }
+    
+    .fc-daygrid-day-number { font-size: 0.7rem; font-weight: 700; opacity: 0.6; padding: 0.5rem !important; }
+    .fc-col-header-cell-cushion { font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; padding: 0.75rem 0 !important; color: #9ca3af; }
+    
+    /* Make all clickable areas look interactive */
+    .fc-daygrid-day, .fc-timegrid-slot, .fc-timegrid-col { cursor: pointer; }
+    .fc-daygrid-day:hover, .fc-timegrid-slot:hover { background: rgba(124, 58, 237, 0.02) !important; }
+
+    .fc-event {
+        border: none !important;
+        padding: 2px 6px !important;
+        border-radius: 4px !important;
+        font-size: 0.65rem !important;
+        font-weight: 700 !important;
+        cursor: pointer;
+        margin: 1px 0 !important;
+    }
+    .fc-daygrid-event-h-wrapper { margin-bottom: 2px !important; }
+    
+    /* Event types colors */
+    .type-screening { background-color: rgba(59, 130, 246, 0.1) !important; color: #60a5fa !important; border-left: 2px solid #3b82f6 !important; }
+    .type-technical { background-color: rgba(139, 92, 246, 0.1) !important; color: #a78bfa !important; border-left: 2px solid #8b5cf6 !important; }
+    .type-cultural { background-color: rgba(236, 72, 153, 0.1) !important; color: #f472b6 !important; border-left: 2px solid #ec4899 !important; }
+    .type-final { background-color: rgba(16, 185, 129, 0.1) !important; color: #34d399 !important; border-left: 2px solid #10b981 !important; }
+    
+    .status-completed { opacity: 0.6; text-decoration: line-through; }
+    .status-cancelled { opacity: 0.4; text-decoration: line-through; filter: grayscale(100%); pointer-events: none; }
+    
+    .fc-day-today { background: rgba(124, 58, 237, 0.03) !important; }
+</style>
+
+<script>
+    // Use var to allow re-declaration during HTMX swaps
+    var calendar;
+    var selectedEventId = null;
+
+    if (typeof initCalendar !== 'function') {
+        window.initCalendar = function() {
+            const calendarEl = document.getElementById('calendar');
+            if (!calendarEl) return;
+
+            // If calendar already exists on this element, don't re-init
+            if (calendarEl.classList.contains('fc-initialized')) return;
+
+            calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                },
+                events: '{% url "interviews:api_events" %}',
+                eventClick: function(info) {
+                    openEventDetailModal(info.event);
+                },
+                selectable: true,
+                select: function(info) {
+                    openScheduleModal(info.startStr, info.endStr);
+                },
+                editable: true,
+                height: 'auto',
+                nowIndicator: true,
+            });
+            calendar.render();
+            calendarEl.classList.add('fc-initialized');
+        };
+    }
+
+    // Initialize immediately (for HTMX swaps) and on load
+    initCalendar();
+    document.addEventListener('DOMContentLoaded', initCalendar);
+    // htmx:load is the standard event for newly added content
+    document.body.addEventListener('htmx:load', function(evt) {
+        if (evt.detail.elt.querySelector('#calendar')) {
+            initCalendar();
+        }
+    });
+
+    function openScheduleModal(startStr, endStr) {
+        if (startStr) {
+            let start = startStr;
+            if (start.length === 10) start += "T09:00";
+            let end = endStr;
+            if (end.length === 10) end = start.substring(0, 11) + "10:00"; 
+            document.getElementById('startTime').value = start.substring(0, 16);
+            document.getElementById('endTime').value = end.substring(0, 16);
+        }
+        document.getElementById('scheduleModal').classList.remove('hidden');
+    }
+
+    function closeScheduleModal() {
+        document.getElementById('scheduleModal').classList.add('hidden');
+        document.getElementById('scheduleForm').reset();
+    }
+
+    // Detail Modal Logic
+    function openEventDetailModal(event) {
+        selectedEventId = event.id;
+        const props = event.extendedProps;
+        
+        document.getElementById('detailTitle').textContent = event.title.split(': ')[1] || event.title;
+        document.getElementById('detailCandidate').textContent = props.candidate;
+        document.getElementById('detailInterviewer').textContent = props.interviewer;
+        document.getElementById('detailJob').textContent = props.job;
+        
+        const start = new Date(event.start);
+        document.getElementById('detailDate').textContent = start.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+        document.getElementById('detailTime').textContent = start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        
+        const badge = document.getElementById('detailTypeBadge');
+        badge.textContent = props.type;
+        
+        // Colors for badges
+        const colors = {
+            'TECHNICAL': 'bg-purple-500',
+            'SCREENING': 'bg-blue-500',
+            'CULTURAL': 'bg-pink-500',
+            'FINAL': 'bg-emerald-500'
+        };
+        badge.className = `px-2 py-0.5 rounded text-[0.65rem] font-black uppercase tracking-widest text-white mb-2 inline-block ${colors[props.type] || 'bg-gray-500'}`;
+        document.getElementById('detailTypeBg').className = `h-32 relative ${colors[props.type] || 'bg-gray-500'} bg-opacity-20`;
+
+        const locationContainer = document.getElementById('detailLocationContainer');
+        const locationBtn = document.getElementById('detailLocationBtn');
+        if (props.location) {
+            locationContainer.classList.remove('hidden');
+            locationBtn.href = props.location;
+        } else {
+            locationContainer.classList.add('hidden');
+        }
+
+        document.getElementById('eventDetailModal').classList.remove('hidden');
+    }
+
+    function closeEventDetailModal() {
+        document.getElementById('eventDetailModal').classList.add('hidden');
+    }
+
+    function shareViaEmail() {
+        const title = document.getElementById('detailTitle').textContent;
+        const date = document.getElementById('detailDate').textContent;
+        const time = document.getElementById('detailTime').textContent;
+        const candidate = document.getElementById('detailCandidate').textContent;
+        const job = document.getElementById('detailJob').textContent;
+        const link = document.getElementById('detailLocationBtn').href;
+
+        const body = `Interview Details:
+Role: ${job}
+Candidate: ${candidate}
+Date: ${date} at ${time}
+Meeting Link: ${link !== '#' ? link : 'N/A'}`;
+
+        window.location.href = `mailto:?subject=Interview Details: ${title}&body=${encodeURIComponent(body)}`;
+    }
+
+    function copyDetailLink() {
+        const link = document.getElementById('detailLocationBtn').href;
+        if (link !== '#') {
+            navigator.clipboard.writeText(link).then(() => alert('Link copied to clipboard!'));
+        } else {
+            alert('No meeting link available for this interview.');
+        }
+    }
+
+    function showCancelModal() {
+        document.getElementById('cancelConfirmModal').classList.remove('hidden');
+    }
+
+    function closeCancelModal() {
+        document.getElementById('cancelConfirmModal').classList.add('hidden');
+    }
+
+    function confirmCancelInterview() {
+        fetch(`/interviews/api/cancel/${selectedEventId}/`, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+        }).then(response => {
+            if (response.ok) {
+                closeCancelModal();
+                closeEventDetailModal();
+                calendar.refetchEvents();
+            } else {
+                alert('Failed to cancel the interview.');
+            }
+        }).catch(err => {
+            console.error(err);
+            alert('An error occurred.');
+        });
+    }
+
+    function editInterview() {
+        alert("Edit functionality coming in the next update! For now, please cancel and re-schedule.");
+        // implementation for pre-filling the scheduleModal can be added here
+    }
+
+    async function submitSchedule(event) {
+        // ... (unchanged) ...
+        event.preventDefault();
+        
+        const data = {
+            application_id: document.getElementById('applicationId').value,
+            title: document.getElementById('interviewTitle').value,
+            interview_type: document.getElementById('interviewType').value,
+            interviewer_id: document.getElementById('interviewerId').value,
+            start_time: document.getElementById('startTime').value,
+            end_time: document.getElementById('endTime').value,
+            location_link: document.getElementById('locationLink').value,
+        };
+
+        try {
+            const response = await fetch('{% url "interviews:api_schedule" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify(data)
+            });
+
+            if (response.ok) {
+                closeScheduleModal();
+                calendar.refetchEvents();
+                document.getElementById('scheduleForm').reset();
+            } else {
+                alert('Error scheduling interview. Please check the data.');
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Failed to connect to the server.');
+        }
+    }
+</script>
+{% endblock %}

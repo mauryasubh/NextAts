@@ -1,0 +1,129 @@
+{% extends 'base_app.html' %}
+{% block content %}
+<div class="max-w-4xl mx-auto space-y-8 py-4">
+
+    <!-- Header -->
+    <div class="flex items-center justify-between border-b g-divider pb-6">
+        <div>
+            <h1 class="text-3xl font-black logo-text text-gray-900 dark:text-white">Profile & Workspace Settings</h1>
+            <p class="g-sub-text text-sm font-medium mt-1">Manage your professional identity and workspace subscription.</p>
+        </div>
+        <div class="w-16 h-16 rounded-2xl bg-brand-600 dark:bg-brand-500/20 text-white dark:text-brand-300 flex items-center justify-center text-2xl font-black shadow-xl shadow-brand-500/20">
+            {{ request.user.first_name.0 }}{{ request.user.last_name.0 }}
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <!-- Side Nav for Settings -->
+        <div class="lg:col-span-1 space-y-2">
+            <button class="w-full text-left px-4 py-3 rounded-xl bg-white dark:bg-white/5 border border-brand-500/30 text-brand-600 dark:text-brand-400 font-bold text-sm flex items-center gap-3">
+                <i class="ph-fill ph-user-circle text-lg"></i> Account Overview
+            </button>
+            <button class="w-full text-left px-4 py-3 rounded-xl hover:bg-white/50 dark:hover:bg-white/5 transition-colors font-bold text-sm text-gray-500 dark:text-gray-400 flex items-center gap-3">
+                <i class="ph ph-credit-card text-lg"></i> Billing & Invoices
+            </button>
+            <button class="w-full text-left px-4 py-3 rounded-xl hover:bg-white/50 dark:hover:bg-white/5 transition-colors font-bold text-sm text-gray-500 dark:text-gray-400 flex items-center gap-3">
+                <i class="ph ph-bell text-lg"></i> Notifications
+            </button>
+            <button class="w-full text-left px-4 py-3 rounded-xl hover:bg-white/50 dark:hover:bg-white/5 transition-colors font-bold text-sm text-gray-500 dark:text-gray-400 flex items-center gap-3">
+                <i class="ph ph-shield-check text-lg"></i> Security
+            </button>
+        </div>
+
+        <!-- Main Settings Panel -->
+        <div class="lg:col-span-2 space-y-6">
+            
+            {% if success_message %}
+            <div class="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-sm font-bold flex items-center gap-3 animate-pulse">
+                <i class="ph-fill ph-check-circle text-lg"></i>
+                {{ success_message }}
+            </div>
+            {% endif %}
+
+            <!-- User Info Card -->
+            <form method="POST" class="dash-card p-6 space-y-6">
+                {% csrf_token %}
+                <div class="flex items-center justify-between">
+                    <h3 class="text-sm font-black uppercase tracking-widest text-gray-400">Personal Details</h3>
+                    <button type="submit" class="g-btn px-4 py-2 text-xs rounded-lg font-bold shadow-lg shadow-brand-500/10">
+                        Save Changes
+                    </button>
+                </div>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-[0.65rem] font-black text-gray-400 uppercase tracking-wider mb-2 ml-1">First Name</label>
+                        <input type="text" name="first_name" value="{{ request.user.first_name }}" class="g-input font-bold" required>
+                    </div>
+                    <div>
+                        <label class="block text-[0.65rem] font-black text-gray-400 uppercase tracking-wider mb-2 ml-1">Last Name</label>
+                        <input type="text" name="last_name" value="{{ request.user.last_name }}" class="g-input font-bold" required>
+                    </div>
+                    <div>
+                        <label class="block text-[0.65rem] font-black text-gray-400 uppercase tracking-wider mb-2 ml-1">Email Address</label>
+                        <input type="email" name="email" value="{{ request.user.email }}" class="g-input font-bold" required>
+                    </div>
+                    <div>
+                        <label class="block text-[0.65rem] font-black text-gray-400 uppercase tracking-wider mb-2 ml-1">System Role</label>
+                        <div class="flex items-center gap-2 mt-2">
+                             <span class="px-2 py-1 bg-brand-500/10 text-brand-500 rounded text-[0.65rem] font-black uppercase tracking-widest">{{ request.user.get_role_display }}</span>
+                             <p class="text-[0.65rem] text-gray-500 italic">(Role cannot be changed)</p>
+                        </div>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Workspace & Subscription Card -->
+            <div class="dash-card p-6 space-y-6 border-brand-500/20 bg-brand-500/[0.02]">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-sm font-black uppercase tracking-widest text-brand-500">Workspace & Plan</h3>
+                    <span class="px-3 py-1 bg-green-500 text-white text-[0.6rem] font-black rounded-full uppercase tracking-widest shadow-lg shadow-green-500/20 animate-pulse">
+                        Active {{ workspace.get_subscription_status_display }}
+                    </span>
+                </div>
+
+                <div class="p-6 rounded-2xl bg-white dark:bg-[#050d1e] border g-divider flex items-center justify-between group">
+                    <div>
+                        <div class="text-[0.65rem] font-black text-gray-400 uppercase mb-1">Current Plan</div>
+                        <div class="text-2xl font-black text-gray-900 dark:text-white capitalize">{{ workspace.get_plan_display }}</div>
+                        <div class="text-xs text-gray-500 mt-1">Workspace: <span class="text-gray-900 dark:text-gray-300 font-bold uppercase">{{ workspace.name }}</span></div>
+                    </div>
+                    <button class="g-btn px-4 py-2 text-xs rounded-lg font-bold">Upgrade Plan</button>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="p-4 rounded-xl border g-divider bg-white/50 dark:bg-white/5">
+                        <div class="text-[0.6rem] font-black text-gray-400 uppercase mb-1">Started On</div>
+                        <div class="text-sm font-bold">{{ workspace.plan_started_at|date:"F d, Y" }}</div>
+                    </div>
+                    <div class="p-4 rounded-xl border g-divider bg-white/50 dark:bg-white/5">
+                        <div class="text-[0.6rem] font-black text-gray-400 uppercase mb-1">Trial/Plan Expiry</div>
+                        <div class="text-sm font-bold text-orange-500">
+                            {% if workspace.trial_ends_at %}
+                                {{ workspace.trial_ends_at|date:"F d, Y" }}
+                            {% else %}
+                                Never Expires
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Plan Limits Meter -->
+                <div class="space-y-3">
+                    <div class="flex justify-between items-end">
+                        <div class="text-xs font-bold">Active Job Slots</div>
+                        <div class="text-xs font-black text-brand-500">{{ workspace.clients.filter.count }}/2 used</div>{# Mocking count for now #}
+                    </div>
+                    <div class="h-2 w-full bg-gray-100 dark:bg-white/5 rounded-full overflow-hidden">
+                        <div class="h-full bg-brand-500 rounded-full" style="width: 50%;"></div>
+                    </div>
+                    <p class="text-[0.6rem] g-sub-text italic">Starter plans are limited to 2 concurrent active jobs.</p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+{% endblock %}

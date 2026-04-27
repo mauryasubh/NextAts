@@ -1,0 +1,95 @@
+<div id="eventDetailModal" class="fixed inset-0 z-[100] hidden overflow-y-auto" role="dialog" aria-modal="true">
+    <!-- Backdrop -->
+    <div class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm transition-opacity" onclick="closeEventDetailModal()"></div>
+
+    <div class="flex min-h-screen items-center justify-center p-4">
+        <div class="relative w-full max-w-sm rounded-2xl bg-white dark:bg-[#0b1630] p-0 overflow-hidden shadow-2xl border dark:border-white/10">
+            <!-- Header/Cover -->
+            <div id="detailTypeBg" class="h-24 bg-brand-600/20 relative">
+                <button onclick="closeEventDetailModal()" class="absolute top-3 right-3 w-7 h-7 rounded-full bg-black/20 backdrop-blur-md flex items-center justify-center text-white hover:bg-black/40 transition-all">
+                    <i class="ph ph-x"></i>
+                </button>
+                <div class="absolute bottom-0 left-0 p-4 w-full">
+                    <span id="detailTypeBadge" class="px-1.5 py-0.5 rounded text-[0.6rem] font-black uppercase tracking-widest text-white mb-1 inline-block">TECHNICAL</span>
+                    <h3 id="detailTitle" class="text-lg font-bold text-white truncate"></h3>
+                </div>
+            </div>
+
+            <!-- Content -->
+            <div class="p-4 space-y-5">
+                <!-- Info Grid -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <div class="text-[0.6rem] font-bold text-gray-500 uppercase tracking-widest mb-1">Candidate</div>
+                        <div class="flex items-center gap-2">
+                            <div class="w-6 h-6 rounded-full bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center text-brand-600 dark:text-brand-400 font-bold text-[0.55rem]">CS</div>
+                            <span id="detailCandidate" class="text-[0.8rem] font-bold truncate"></span>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="text-[0.6rem] font-bold text-gray-500 uppercase tracking-widest mb-1">Interviewer</div>
+                        <div class="flex items-center gap-2">
+                            <i class="ph ph-user-circle text-gray-400 text-lg"></i>
+                            <span id="detailInterviewer" class="text-[0.8rem] font-semibold truncate text-gray-700 dark:text-gray-300"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <div class="text-[0.6rem] font-bold text-gray-500 uppercase tracking-widest mb-1">Date</div>
+                        <div class="flex items-center gap-2">
+                            <i class="ph ph-calendar-blank text-gray-400"></i>
+                            <span id="detailDate" class="text-[0.8rem] font-semibold"></span>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="text-[0.6rem] font-bold text-gray-500 uppercase tracking-widest mb-1">Time</div>
+                        <div class="flex items-center gap-2">
+                            <i class="ph ph-clock text-gray-400"></i>
+                            <span id="detailTime" class="text-[0.8rem] font-semibold"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Job -->
+                <div>
+                    <div class="text-[0.6rem] font-bold text-gray-500 uppercase tracking-widest mb-1">Job Role</div>
+                    <div class="p-2.5 rounded-xl bg-gray-50 dark:bg-white/5 border dark:border-white/5 flex items-center gap-3">
+                        <i class="ph ph-briefcase text-brand-500 text-xs"></i>
+                        <span id="detailJob" class="text-[0.75rem] font-bold"></span>
+                    </div>
+                </div>
+
+                <!-- Meeting Link -->
+                <div id="detailLocationContainer" class="hidden">
+                    <a id="detailLocationBtn" href="#" target="_blank" class="w-full g-btn py-2.5 rounded-xl flex items-center justify-center gap-2 font-bold text-[0.8rem] shadow-xl shadow-brand-500/20">
+                        <i class="ph ph-video-conference"></i> Join Meeting
+                    </a>
+                </div>
+
+                <!-- Share Section -->
+                <div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="shareViaEmail()" class="flex-1 px-3 py-2 rounded-xl border g-divider flex items-center justify-center gap-2 text-[0.65rem] font-bold hover:bg-gray-50 dark:hover:bg-white/5 transition-all text-gray-600 dark:text-gray-400">
+                            <i class="ph ph-envelope"></i> Email
+                        </button>
+                        <button onclick="copyDetailLink()" class="flex-1 px-3 py-2 rounded-xl border g-divider flex items-center justify-center gap-2 text-[0.65rem] font-bold hover:bg-gray-50 dark:hover:bg-white/5 transition-all text-gray-600 dark:text-gray-400">
+                            <i class="ph ph-copy"></i> Link
+                        </button>
+                        <button onclick="editInterview()" class="px-3 py-2 rounded-xl border g-divider flex items-center justify-center gap-2 text-[0.65rem] font-bold hover:bg-gray-50 dark:hover:bg-white/5 transition-all text-gray-600 dark:text-gray-400">
+                            <i class="ph ph-pencil-simple"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Cancel Footer -->
+                <div class="pt-2 border-t g-divider">
+                    <button onclick="showCancelModal()" class="w-full py-1 text-[0.6rem] font-black uppercase tracking-widest text-red-500/60 hover:text-red-500 transition-colors flex items-center justify-center gap-2">
+                        <i class="ph ph-trash"></i> Cancel Session
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

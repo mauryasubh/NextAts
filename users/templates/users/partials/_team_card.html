@@ -1,0 +1,85 @@
+<div class="dash-card p-3 flex flex-col gap-2.5 relative group overflow-hidden hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200 h-full">
+
+    <!-- Role Badge -->
+    <div class="absolute top-2.5 right-2.5">
+        {% if member.role == 'ADMIN' %}
+            <span class="px-1.5 py-0.5 bg-brand-500/10 text-brand-500 text-[0.55rem] font-black uppercase rounded tracking-widest border border-brand-500/20">Admin</span>
+        {% elif member.role == 'SUB_ADMIN' %}
+            <span class="px-1.5 py-0.5 bg-purple-500/10 text-purple-400 text-[0.55rem] font-black uppercase rounded tracking-widest border border-purple-500/20">Sub-Admin</span>
+        {% elif member.role == 'MANAGER' %}
+            <span class="px-1.5 py-0.5 bg-orange-500/10 text-orange-400 text-[0.55rem] font-black uppercase rounded tracking-widest border border-orange-500/20">Manager</span>
+        {% elif member.role == 'RECRUITER' %}
+            <span class="px-1.5 py-0.5 bg-blue-500/10 text-blue-400 text-[0.55rem] font-black uppercase rounded tracking-widest border border-blue-500/20">Recruiter</span>
+        {% else %}
+            <span class="px-1.5 py-0.5 bg-gray-500/10 text-gray-400 text-[0.55rem] font-black uppercase rounded tracking-widest border border-gray-500/20">Interviewer</span>
+        {% endif %}
+    </div>
+
+    <!-- Avatar + Name -->
+    <div class="flex items-center gap-2.5 pr-16">
+        <div class="w-9 h-9 rounded-xl bg-brand-100 text-brand-700 dark:bg-brand-900/30 dark:text-brand-300 font-black text-xs flex items-center justify-center shadow-inner shrink-0">
+            {{ member.first_name.0 }}{{ member.last_name.0 }}
+        </div>
+        <div class="min-w-0">
+            <h3 class="text-xs font-bold text-gray-900 dark:text-white truncate leading-tight">{{ member.get_full_name }}</h3>
+            <p class="text-[0.6rem] g-sub-text truncate font-medium">{{ member.email }}</p>
+        </div>
+    </div>
+
+    <!-- Middle content: fills space, pushes action row to bottom -->
+    <div class="flex-1 flex flex-col gap-2">
+
+        <!-- Allocations -->
+        <div class="space-y-1">
+            <span class="text-[0.55rem] font-black text-gray-400 uppercase tracking-[0.15em]">Departments</span>
+            <div class="flex flex-wrap gap-1">
+                {% for allocation in member.allocations.all %}
+                <span class="px-1.5 py-0.5 bg-gray-50 dark:bg-white/5 border g-divider rounded text-[0.6rem] font-bold flex items-center gap-1">
+                    {{ allocation.department.name }}
+                    <span class="text-brand-500">{{ allocation.allocation_percentage }}%</span>
+                </span>
+                {% empty %}
+                <span class="text-[0.6rem] font-medium text-gray-400 italic">Unassigned</span>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Capacity Bar (non-admin only) -->
+        {% if member.role != 'ADMIN' %}
+        <div class="space-y-1">
+            <div class="flex justify-between text-[0.6rem] font-bold">
+                <span class="text-gray-400 uppercase tracking-wide">Occupancy</span>
+                <span class="{% if member.total_pct >= 100 %}text-emerald-500{% elif member.total_pct >= 60 %}text-orange-400{% else %}text-brand-500{% endif %}">
+                    {{ member.total_pct }}%
+                </span>
+            </div>
+            <div class="h-1 w-full bg-gray-100 dark:bg-white/5 rounded-full overflow-hidden">
+                <div class="h-full rounded-full transition-all duration-500
+                    {% if member.total_pct >= 100 %}bg-emerald-500{% elif member.total_pct >= 60 %}bg-orange-400{% else %}bg-brand-500{% endif %}"
+                     style="width: {{ member.total_pct }}%">
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+
+    <!-- Action Row -->
+    <div class="pt-1 border-t g-divider flex items-center justify-between">
+        {% if member == request.user %}
+            <span class="text-[0.55rem] font-black uppercase text-brand-500 italic">You</span>
+            <span class="text-[0.55rem] text-gray-400 font-medium">Current session</span>
+        {% elif member.can_manage %}
+            <button @click="editUser = { id: '{{ member.id }}', name: '{{ member.get_full_name|escapejs }}', email: '{{ member.email|escapejs }}', role: '{{ member.role }}' }; showEdit = true"
+                    class="text-[0.6rem] font-black uppercase text-gray-400 hover:text-brand-500 transition-colors flex items-center gap-1">
+                <i class="ph ph-pencil-simple text-xs"></i> Edit Role
+            </button>
+            <button @click="removeUser.name = '{{ member.get_full_name|escapejs }}'; removeUser.id = '{{ member.id }}'; showRemove = true"
+                    class="text-[0.6rem] font-black uppercase text-red-400 hover:text-red-500 transition-colors flex items-center gap-1">
+                <i class="ph ph-user-minus text-xs"></i> Remove
+            </button>
+        {% else %}
+            <span class="text-[0.55rem] text-gray-400 font-medium italic">View only</span>
+        {% endif %}
+    </div>
+</div>

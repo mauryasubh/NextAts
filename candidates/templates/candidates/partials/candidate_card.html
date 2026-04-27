@@ -1,0 +1,58 @@
+<div class="dash-card p-4 group hover:-translate-y-1 hover:border-brand-500/50 transition-all flex flex-col h-full bg-white/70 dark:bg-[#0b1630]/70 backdrop-blur-xl">
+    <div class="flex justify-between items-start mb-4">
+        <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-2xl bg-brand-100 text-brand-700 dark:bg-brand-900/30 dark:text-brand-300 font-black text-sm flex items-center justify-center shrink-0 shadow-sm border border-brand-200/50 dark:border-brand-500/20">
+                {{ candidate.first_name.0 }}{{ candidate.last_name.0 }}
+            </div>
+            <div class="min-w-0">
+                <h3 class="text-sm font-bold text-gray-900 dark:text-white truncate group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">
+                    {{ candidate.first_name }} {{ candidate.last_name }}
+                </h3>
+                <div class="flex items-center gap-1.5 mt-1">
+                    <span class="text-[0.6rem] font-black px-1.5 py-0.5 bg-green-500/10 text-green-500 rounded uppercase tracking-tighter">
+                        88% Match
+                    </span>
+                    <span class="text-[0.6rem] font-black px-1.5 py-0.5 bg-brand-500/10 text-brand-500 rounded uppercase tracking-tighter">
+                        {{ candidate.get_category_display }}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="space-y-2 mb-4 flex-1">
+        <div class="flex items-center gap-2 text-gray-500 dark:text-gray-400">
+            <i class="ph ph-envelope text-xs"></i>
+            <span class="text-[0.7rem] font-medium truncate">{{ candidate.email }}</span>
+        </div>
+        {% if candidate.phone %}
+        <div class="flex items-center gap-2 text-gray-500 dark:text-gray-400">
+            <i class="ph ph-phone text-xs"></i>
+            <span class="text-[0.7rem] font-medium">{{ candidate.phone }}</span>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Applied Roles -->
+    <div class="mb-5">
+        <div class="text-[0.6rem] font-black text-gray-400 uppercase tracking-widest mb-2">Applied Roles</div>
+        <div class="flex flex-wrap gap-1.5 max-h-16 overflow-y-auto pr-1">
+            {% for app in candidate.applications.all %}
+            <span class="text-[0.55rem] font-bold px-2 py-0.5 bg-gray-100 dark:bg-white/5 text-gray-600 dark:text-gray-400 rounded-md border g-divider">
+                {{ app.job.title }}
+            </span>
+            {% empty %}
+            <span class="text-[0.55rem] font-bold text-gray-400 italic">No applications</span>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="pt-3 border-t g-divider mt-auto">
+        <div class="flex items-center justify-between">
+            <span class="text-[0.6rem] font-bold text-gray-400">Added {{ candidate.created_at|date:"M d, Y" }}</span>
+            <a href="{% url 'candidates:detail' candidate.pk %}" class="text-[0.65rem] font-black uppercase text-brand-600 dark:text-brand-400 hover:underline">
+                View Profile &rarr;
+            </a>
+        </div>
+    </div>
+</div>

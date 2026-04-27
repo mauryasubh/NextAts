@@ -1,0 +1,26 @@
+<div class="dash-card p-3 cursor-pointer hover:border-brand-500/50 dark:hover:border-brand-500/50 transition-all block group active:scale-95 active:rotate-1" 
+     data-id="{{ application.id }}">
+    <div class="flex justify-between items-start mb-2">
+        <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-lg bg-brand-100 text-brand-700 dark:bg-brand-900/30 dark:text-brand-300 font-bold text-xs flex items-center justify-center shrink-0">
+                {{ application.candidate.first_name.0 }}{{ application.candidate.last_name.0 }}
+            </div>
+            <div class="min-w-0">
+                <div class="text-xs font-bold text-gray-900 dark:text-white truncate">{{ application.candidate.first_name }} {{ application.candidate.last_name }}</div>
+                <div class="text-[0.6rem] font-medium text-gray-500 dark:text-gray-400 truncate">{{ application.candidate.email }}</div>
+            </div>
+        </div>
+        {% if application.ai_match_score %}
+        <span class="text-[0.55rem] font-black px-1.5 py-0.5 bg-green-500/10 text-green-500 rounded uppercase tracking-tighter shrink-0">
+            {{ application.ai_match_score }}% Match
+        </span>
+        {% endif %}
+    </div>
+    
+    <div class="flex items-center gap-2 mt-3 pt-2 border-t g-divider">
+         <div class="w-4 h-4 rounded-full bg-gray-100 dark:bg-white/5 flex items-center justify-center">
+            <i class="ph ph-file-text text-[0.6rem] text-gray-400"></i>
+         </div>
+         <span class="text-[0.6rem] font-bold text-gray-400 uppercase tracking-tight">Resume Ready</span>
+    </div>
+</div>

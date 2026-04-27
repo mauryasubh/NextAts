@@ -1,0 +1,64 @@
+<!-- GRID VIEW -->
+<div x-show="viewMode === 'grid'" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+    {% for candidate in candidates %}
+        {% include 'candidates/partials/candidate_card.html' %}
+    {% empty %}
+        <div class="col-span-full py-20 text-center border-2 border-dashed g-divider rounded-2xl bg-gray-50/30 dark:bg-white/[0.02]">
+            <i class="ph ph-users-three text-4xl text-gray-300 mb-3"></i>
+            <p class="text-sm g-sub-text font-bold">No candidates found in this section.</p>
+        </div>
+    {% endfor %}
+</div>
+
+<!-- LIST VIEW (TABLE) -->
+<div x-show="viewMode === 'list'" class="dash-card overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full text-left">
+            <thead>
+                <tr class="bg-gray-50/50 dark:bg-white/5 border-b g-divider">
+                    <th class="px-6 py-4 text-[0.65rem] font-bold text-gray-500 uppercase tracking-widest">Candidate</th>
+                    <th class="px-6 py-4 text-[0.65rem] font-bold text-gray-500 uppercase tracking-widest">Contact</th>
+                    <th class="px-6 py-4 text-[0.65rem] font-bold text-gray-500 uppercase tracking-widest">Category</th>
+                    <th class="px-6 py-4 text-[0.65rem] font-bold text-gray-500 uppercase tracking-widest">Added</th>
+                    <th class="px-6 py-4"></th>
+                </tr>
+            </thead>
+            <tbody class="divide-y g-divider">
+                {% for candidate in candidates %}
+                <tr class="hover:bg-gray-50/50 dark:hover:bg-white/5 transition-colors">
+                    <td class="px-6 py-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-brand-100 text-brand-700 dark:bg-brand-900/30 dark:text-brand-300 font-bold flex items-center justify-center">
+                                {{ candidate.first_name.0 }}{{ candidate.last_name.0 }}
+                            </div>
+                            <div>
+                                <div class="text-sm font-bold text-gray-900 dark:text-white">{{ candidate.first_name }} {{ candidate.last_name }}</div>
+                                <div class="text-[0.65rem] font-bold text-brand-600 dark:text-brand-400">AI Match: 88%</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="text-xs font-semibold text-gray-600 dark:text-gray-300">{{ candidate.email }}</div>
+                        <div class="text-[0.7rem] g-sub-text">{{ candidate.phone|default:"No phone" }}</div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <span class="text-[0.6rem] font-bold px-2 py-0.5 bg-brand-500/10 text-brand-500 rounded uppercase tracking-widest">
+                            {{ candidate.get_category_display }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400">
+                        {{ candidate.created_at|date:"M d, Y" }}
+                    </td>
+                    <td class="px-6 py-4 text-right">
+                        <a href="{% url 'candidates:detail' candidate.pk %}" class="text-xs font-bold text-brand-600 dark:text-brand-400 hover:underline">View Profile &rarr;</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                   <td colspan="5" class="py-10 text-center g-sub-text italic">No candidates to display.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>

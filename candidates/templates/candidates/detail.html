@@ -1,0 +1,191 @@
+{% extends 'base_app.html' %}
+{% block content %}
+<div class="max-w-[1400px] mx-auto space-y-6 pb-20" x-data="{ resumeOpen: false }">
+    
+    <!-- Breadcrumbs -->
+    <a href="{% url 'candidates:list' %}" class="inline-flex items-center gap-2 text-xs font-bold text-gray-500 hover:text-brand-600 transition-colors">
+        <i class="ph ph-arrow-left"></i> Back to Candidate Directory
+    </a>
+
+    <!-- Profile Header -->
+    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+        <div class="flex items-center gap-4">
+            <div class="w-14 h-14 rounded-2xl bg-brand-600 text-white font-black text-lg flex items-center justify-center shadow-lg shadow-brand-500/20 shrink-0">
+                {{ candidate.first_name.0 }}{{ candidate.last_name.0 }}
+            </div>
+            <div>
+                <h1 class="text-2xl font-bold logo-text mb-0.5">{{ candidate.first_name }} {{ candidate.last_name }}</h1>
+                <div class="flex flex-wrap items-center gap-x-4 gap-y-1">
+                    <span class="text-xs font-semibold flex items-center gap-1.5 text-gray-500 dark:text-gray-400">
+                        <i class="ph ph-envelope text-brand-500"></i> {{ candidate.email }}
+                    </span>
+                    <span class="text-xs font-semibold flex items-center gap-1.5 text-gray-500 dark:text-gray-400">
+                        <i class="ph ph-phone text-brand-500"></i> {{ candidate.phone|default:"Unset" }}
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div class="flex items-center gap-2">
+            {% if candidate.resume %}
+            <button @click="resumeOpen = true" class="g-btn px-4 py-2 rounded-xl font-bold text-xs flex items-center gap-2">
+                <i class="ph ph-file-pdf text-sm"></i> View Resume
+            </button>
+            {% endif %}
+            <a href="{% url 'candidates:edit' candidate.id %}" class="px-4 py-2 bg-gray-100 dark:bg-white/5 border g-divider rounded-xl font-bold text-xs hover:bg-gray-200 dark:hover:bg-white/10 transition-colors">
+                Edit Profile
+            </a>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Main Content (Left, 8/12) -->
+        <div class="lg:col-span-8 space-y-6">
+            <!-- Pipeline Activity -->
+            <div class="dash-card p-5">
+                <h2 class="text-base font-bold logo-text mb-5 flex items-center gap-2">
+                    <i class="ph ph-layout text-brand-500"></i> Active Pipeline History
+                </h2>
+                <div class="space-y-3">
+                    {% for app in applications %}
+                    <div class="flex items-center justify-between p-3.5 rounded-xl border g-divider hover:bg-gray-50/50 dark:hover:bg-white/5 transition-all">
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-lg bg-brand-50 dark:bg-brand-500/10 flex items-center justify-center text-brand-600 dark:text-brand-400">
+                                <i class="ph ph-briefcase text-lg"></i>
+                            </div>
+                            <div>
+                                <div class="text-sm font-bold">{{ app.job.title }}</div>
+                                <div class="text-[0.65rem] font-bold text-gray-400 uppercase tracking-tight">Applied {{ app.applied_at|date:"M d, Y" }}</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-6">
+                            <div class="hidden sm:block text-right">
+                                <div class="text-[0.6rem] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Stage</div>
+                                <span class="text-[0.65rem] font-bold px-2 py-0.5 bg-brand-100 text-brand-700 dark:bg-brand-900/30 dark:text-brand-300 rounded uppercase">
+                                    {{ app.get_stage_display }}
+                                </span>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-[0.6rem] font-bold text-gray-400 uppercase tracking-wider mb-0.5">AI Fit</div>
+                                <div class="text-sm font-black text-green-600 dark:text-green-400">{{ app.ai_match_score }}%</div>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="py-12 text-center g-sub-text border-2 border-dashed g-divider rounded-2xl">
+                        <i class="ph ph-folder-not-found text-3xl mb-2 opacity-30"></i>
+                        <p class="text-xs font-bold">No active applications found.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar (Right, 4/12) -->
+        <div class="lg:col-span-4 space-y-6">
+            <!-- AI Insights -->
+            <div class="dash-card p-5 border-brand-500/20 dark:bg-brand-500/[0.02]">
+                <h2 class="text-sm font-bold logo-text mb-4 flex items-center gap-2">
+                    <i class="ph-fill ph-brain text-brand-500"></i> AI Profiling Insight
+                </h2>
+                <div class="prose dark:prose-invert max-w-none">
+                    <p class="text-[0.8rem] leading-relaxed text-gray-600 dark:text-gray-300">
+                        {{ candidate.summary|default:"Evaluation in progress by NexATS AI Engine..." }}
+                    </p>
+                </div>
+                
+                <div class="mt-6 pt-5 border-t g-divider">
+                    <h3 class="text-[0.6rem] font-black text-gray-400 uppercase tracking-[0.1em] mb-4">Core Competencies</h3>
+                    <div class="flex flex-wrap gap-1.5">
+                        {% for skill in candidate.parsed_skills.skills %}
+                        <span class="px-2 py-1 rounded bg-gray-100 dark:bg-white/5 border g-divider text-[0.65rem] font-bold text-gray-700 dark:text-gray-300">{{ skill }}</span>
+                        {% empty %}
+                        <span class="text-[0.65rem] italic text-gray-500">No data extracted.</span>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats -->
+            <div class="dash-card p-5">
+                <h3 class="text-[0.65rem] font-black text-gray-400 uppercase tracking-[0.1em] mb-5">Vitals & Assessment</h3>
+                <div class="space-y-4">
+                    <div>
+                        <div class="flex items-center justify-between mb-1.5">
+                            <span class="text-[0.6rem] font-black text-gray-500 uppercase">Interview Readiness</span>
+                            <span class="text-[0.65rem] font-black text-brand-600">75%</span>
+                        </div>
+                        <div class="h-1.5 w-full bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+                            <div class="h-full bg-brand-500" style="width: 75%"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex items-center justify-between mb-1.5">
+                            <span class="text-[0.6rem] font-black text-gray-500 uppercase">Profile Completion</span>
+                            <span class="text-[0.65rem] font-black text-green-500">90%</span>
+                        </div>
+                        <div class="h-1.5 w-full bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+                            <div class="h-full bg-green-500" style="width: 90%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resume Modal -->
+    {% if candidate.resume %}
+    <div x-show="resumeOpen" 
+         class="fixed inset-0 z-[60] flex items-center justify-center p-4 sm:p-6"
+         x-cloak>
+        <!-- Backdrop -->
+        <div x-show="resumeOpen" 
+             x-transition:enter="ease-out duration-300"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="ease-in duration-200"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             class="absolute inset-0 bg-gray-900/60 backdrop-blur-sm"
+             @click="resumeOpen = false"></div>
+
+        <!-- Modal Content -->
+        <div x-show="resumeOpen"
+             x-transition:enter="ease-out duration-300"
+             x-transition:enter-start="opacity-0 scale-95 translate-y-4"
+             x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+             x-transition:leave="ease-in duration-200"
+             x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+             x-transition:leave-end="opacity-0 scale-95 translate-y-4"
+             class="relative bg-white dark:bg-[#0b1630] w-full max-w-5xl h-[85vh] rounded-2xl shadow-2xl flex flex-col border dark:border-white/10 overflow-hidden">
+            
+            <!-- Modal Header -->
+            <div class="px-6 py-4 border-b g-divider flex items-center justify-between shrink-0 bg-white/50 dark:bg-[#0b1630]/50 backdrop-blur-md">
+                <div class="flex items-center gap-3">
+                    <i class="ph ph-file-pdf text-brand-500 text-xl"></i>
+                    <div>
+                        <h3 class="text-sm font-bold text-gray-900 dark:text-white">{{ candidate.first_name }}_Resume.pdf</h3>
+                        <p class="text-[0.6rem] text-gray-400 font-bold uppercase tracking-widest">Document Viewer</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <a href="{{ candidate.resume.url }}" download class="px-3 py-1.5 bg-brand-500/10 text-brand-600 dark:text-brand-400 rounded-lg text-xs font-bold hover:bg-brand-500/20 transition-colors flex items-center gap-1.5">
+                        <i class="ph ph-download-simple"></i> Download
+                    </a>
+                    <button @click="resumeOpen = false" class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 transition-colors">
+                        <i class="ph ph-x text-lg"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- PDF Viewer -->
+            <div class="flex-1 bg-gray-100 dark:bg-[#050d1e]">
+                <iframe src="{{ candidate.resume.url }}" class="w-full h-full border-none" title="Resume PDF"></iframe>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+
+</div>
+{% endblock %}

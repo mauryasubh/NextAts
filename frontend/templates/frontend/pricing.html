@@ -1,0 +1,148 @@
+{% extends request.user.is_authenticated|yesno:"base_app.html,base.html" %}
+{% block content %}
+    <div class="pb-24 relative">
+        <div class="absolute left-1/2 top-10 -translate-x-1/2 w-[800px] h-[300px] bg-brand-500/20 dark:bg-brand-500/10 rounded-full blur-[100px] -z-10 animate-pulse pointer-events-none"></div>
+
+        <!-- Hero Header -->
+        <div class="max-w-3xl mx-auto px-5 text-center pt-10 pb-8">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[0.65rem] font-bold uppercase tracking-widest bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-400 mb-6">
+                Simple & Transparent
+            </div>
+            <h1 class="logo-text text-4xl lg:text-6xl text-gray-900 dark:text-white mb-6 leading-tight">
+                Scale your hiring. <br>
+                <span class="hero-grad">Not your costs.</span>
+            </h1>
+            <p class="text-lg g-sub-text max-w-xl mx-auto leading-relaxed">
+                Pay a flat, predictable rate based on active job listings. Unlimited candidates, unlimited seats, and no hidden fees. Ever.
+            </p>
+        </div>
+
+        <!-- Pricing Cards Grid -->
+        <div class="max-w-6xl mx-auto px-5 grid grid-cols-1 md:grid-cols-3 gap-8 items-start relative z-10">
+            
+            <!-- Tier 1: Starter -->
+            <div class="bg-white dark:bg-[#0b1630] border g-divider rounded-3xl p-8 shadow-sm">
+                <div class="w-12 h-12 rounded-xl bg-gray-100 dark:bg-white/5 text-gray-700 dark:text-gray-300 flex items-center justify-center text-xl mb-6">🌱</div>
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">Starter</h3>
+                <p class="text-sm g-sub-text mb-6">Perfect for small teams and fast startups.</p>
+                
+                <div class="mb-6 flex items-end gap-1">
+                    <span class="text-4xl font-black text-gray-900 dark:text-white">$0</span>
+                    <span class="g-sub-text text-sm font-semibold mb-1">/ forever</span>
+                </div>
+                
+                <a href="{% url 'frontend:signup' %}" class="w-full block py-3 px-4 text-center rounded-xl font-bold bg-gray-100 text-gray-800 dark:bg-white/5 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-white/10 transition-colors mb-8">
+                    Get Started Free
+                </a>
+                
+                <div class="text-sm font-bold text-gray-900 dark:text-white mb-4">What's included:</div>
+                <ul class="space-y-3">
+                    <li class="flex items-start gap-3 text-sm g-sub-text">
+                        <i class="ph-fill ph-check-circle text-brand-500 mt-0.5"></i> Up to 2 Active Jobs
+                    </li>
+                    <li class="flex items-start gap-3 text-sm g-sub-text">
+                        <i class="ph-fill ph-check-circle text-brand-500 mt-0.5"></i> Single Pipeline View
+                    </li>
+                    <li class="flex items-start gap-3 text-sm g-sub-text">
+                        <i class="ph-fill ph-check-circle text-brand-500 mt-0.5"></i> Basic Resume Parsing
+                    </li>
+                    <li class="flex items-start gap-3 text-sm g-sub-text">
+                        <i class="ph-fill ph-check-circle text-brand-500 mt-0.5"></i> 3 Team Seats
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Tier 2: Growth (Highlighted) -->
+            <div class="bg-white dark:bg-[#0b1630] border-2 border-brand-500 rounded-3xl p-8 shadow-2xl relative transform md:-translate-y-4">
+                <div class="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-brand-500 text-white text-xs font-bold uppercase tracking-widest px-4 py-1 rounded-full">Most Popular</div>
+                
+                <div class="w-12 h-12 rounded-xl bg-brand-100 dark:bg-brand-500/10 text-brand-600 dark:text-brand-400 flex items-center justify-center text-xl mb-6">🚀</div>
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">Growth</h3>
+                <p class="text-sm g-sub-text mb-6">Level up your hiring velocity and automation.</p>
+                
+                <div class="mb-6 flex items-end gap-1">
+                    <span class="text-4xl font-black text-gray-900 dark:text-white">$99</span>
+                    <span class="g-sub-text text-sm font-semibold mb-1">/ mo</span>
+                </div>
+                
+                <a href="{% url 'frontend:signup' %}" class="g-btn w-full block py-3 px-4 text-center rounded-xl font-bold shadow-lg hover:shadow-brand-500/20 mb-8">
+                    Start 14-Day Free Trial
+                </a>
+                
+                <div class="text-sm font-bold text-gray-900 dark:text-white mb-4">Everything in Starter, plus:</div>
+                <ul class="space-y-3">
+                    <li class="flex items-start gap-3 text-sm font-medium text-gray-800 dark:text-gray-200">
+                        <i class="ph-fill ph-check-circle text-brand-500 mt-0.5"></i> Unlimited Active Jobs
+                    </li>
+                    <li class="flex items-start gap-3 text-sm font-medium text-gray-800 dark:text-gray-200">
+                        <i class="ph-fill ph-check-circle text-brand-500 mt-0.5"></i> Zero-Touch Smart Scheduling
+                    </li>
+                    <li class="flex items-start gap-3 text-sm font-medium text-gray-800 dark:text-gray-200">
+                        <i class="ph-fill ph-check-circle text-brand-500 mt-0.5"></i> AI Objective Scoring
+                    </li>
+                    <li class="flex items-start gap-3 text-sm font-medium text-gray-800 dark:text-gray-200">
+                        <i class="ph-fill ph-check-circle text-brand-500 mt-0.5"></i> Funnel Conversion Analytics
+                    </li>
+                    <li class="flex items-start gap-3 text-sm font-medium text-gray-800 dark:text-gray-200">
+                        <i class="ph-fill ph-check-circle text-brand-500 mt-0.5"></i> Unlimited Team Seats
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Tier 3: Enterprise -->
+            <div class="bg-white dark:bg-[#0b1630] border g-divider rounded-3xl p-8 shadow-sm">
+                <div class="w-12 h-12 rounded-xl bg-gray-100 dark:bg-white/5 text-gray-700 dark:text-gray-300 flex items-center justify-center text-xl mb-6">🏢</div>
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">Enterprise</h3>
+                <p class="text-sm g-sub-text mb-6">Custom deployment for large scale corporate teams.</p>
+                
+                <div class="mb-6 flex items-end gap-1">
+                    <span class="text-4xl font-black text-gray-900 dark:text-white">Custom</span>
+                </div>
+                
+                <a href="{% url 'frontend:contact_sales' %}" class="w-full block py-3 px-4 text-center rounded-xl font-bold bg-gray-100 text-gray-800 dark:bg-white/5 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-white/10 transition-colors mb-8">
+                    Contact Sales
+                </a>
+                
+                <div class="text-sm font-bold text-gray-900 dark:text-white mb-4">Everything in Growth, plus:</div>
+                <ul class="space-y-3">
+                    <li class="flex items-start gap-3 text-sm g-sub-text">
+                        <i class="ph-fill ph-check-circle text-brand-500 mt-0.5"></i> Custom Data Retention
+                    </li>
+                    <li class="flex items-start gap-3 text-sm g-sub-text">
+                        <i class="ph-fill ph-check-circle text-brand-500 mt-0.5"></i> Dedicated Success Manager
+                    </li>
+                    <li class="flex items-start gap-3 text-sm g-sub-text">
+                        <i class="ph-fill ph-check-circle text-brand-500 mt-0.5"></i> API & Webhook Access
+                    </li>
+                    <li class="flex items-start gap-3 text-sm g-sub-text">
+                        <i class="ph-fill ph-check-circle text-brand-500 mt-0.5"></i> SAML SSO Authentication
+                    </li>
+                </ul>
+            </div>
+            
+        </div>
+
+        <!-- Simple FAQ Area -->
+        <div class="max-w-3xl mx-auto px-5 mt-24">
+            <h3 class="logo-text text-2xl text-center text-gray-900 dark:text-white mb-10">Frequently Asked Questions</h3>
+            <div class="space-y-6">
+                <!-- FAQ 1 -->
+                <div class="border-b g-divider pb-6">
+                    <h4 class="font-bold text-lg text-gray-900 dark:text-[#e2f0ff] mb-2">Can I invite external stakeholders to review candidates?</h4>
+                    <p class="text-sm g-sub-text leading-relaxed">Yes! On the Growth plan, you can invite external guest reviewers with read-only access to specific jobs for free. They don't take up full team seats.</p>
+                </div>
+                <!-- FAQ 2 -->
+                <div class="border-b g-divider pb-6">
+                    <h4 class="font-bold text-lg text-gray-900 dark:text-[#e2f0ff] mb-2">Do I need a credit card to start the trial?</h4>
+                    <p class="text-sm g-sub-text leading-relaxed">No. We don't ask for a credit card until your 14-day trial concludes. If you choose not to upgrade, your account safely reverts to the free Starter tier.</p>
+                </div>
+                <!-- FAQ 3 -->
+                <div class="border-b g-divider pb-6">
+                    <h4 class="font-bold text-lg text-gray-900 dark:text-[#e2f0ff] mb-2">What happens to data if we downgrade?</h4>
+                    <p class="text-sm g-sub-text leading-relaxed">If you drop to the Free tier, we will safely archive candidates beyond the "2 Active Jobs" limit. You can unlock them anytime by upgrading.</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+{% endblock %}

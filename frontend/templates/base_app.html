@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard — NexATS</title>
+    
+    <script>(function () { var t = localStorage.getItem('ds_theme'); if (t === 'light') document.documentElement.classList.remove('dark'); else document.documentElement.classList.add('dark'); })();</script>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700;800&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <script src="https://unpkg.com/htmx.org@2.0.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <script>
+        tailwind.config = { 
+            darkMode: 'class', 
+            theme: { 
+                extend: { 
+                    fontFamily: { 
+                        sans: ['Plus Jakarta Sans', 'sans-serif'], 
+                        mono: ['JetBrains Mono', 'monospace'],
+                        display: ['Plus Jakarta Sans', 'sans-serif']
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f5f3ff', 100: '#ede9fe', 200: '#ddd6fe', 300: '#c4b5fd', 400: '#a78bfa',
+                            500: '#8b5cf6', 600: '#7c3aed', 700: '#6d28d9', 800: '#5b21b6', 900: '#4c1d95',
+                        }
+                    }
+                } 
+            } 
+        }
+    </script>
+
+    <style>
+        :root { --g-brand: #7c3aed; }
+        body { background-color: #fafafa; color: #111827; transition: background-color 0.3s, color 0.3s; }
+        html.dark body { background-color: #050d1e; color: #f3f4f6; }
+
+        /* HTMX Progress Bar */
+        .htmx-progress {
+            position: fixed; top: 0; left: 0; width: 0%; height: 3px;
+            background: var(--g-brand); z-index: 1000; transition: width 0.3s ease;
+            box-shadow: 0 0 10px var(--g-brand);
+        }
+        .htmx-request .htmx-progress { width: 100%; }
+        .htmx-request .htmx-progress-bar { width: 40%; } /* Initial "jump" */
+
+        /* Page Transitions */
+        .htmx-settling #main-content { opacity: 0; transform: translateY(5px); }
+        #main-content { transition: all 0.3s ease-out; opacity: 1; transform: translateY(0); }
+
+        .g-divider { border-color: #e5e7eb; }
+        html.dark .g-divider { border-color: rgba(255,255,255,0.08); }
+
+        .g-sub-text { color: #6b7280; }
+        html.dark .g-sub-text { color: #9ca3af; }
+
+        /* Sidebar Mini Mode */
+        aside { transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); width: 260px; }
+        aside.is-minimized { width: 80px; }
+        aside.is-minimized .sidebar-text, 
+        aside.is-minimized .sidebar-badge,
+        aside.is-minimized .user-details,
+        aside.is-minimized .nav-section-title,
+        aside.is-minimized .branding-text,
+        aside.is-minimized .user-caret { display: none; }
+        aside.is-minimized .sidebar-link { justify-content: center; padding: 0.5rem; }
+        aside.is-minimized .sidebar-link i { font-size: 1.25rem; margin-right: 0; }
+        aside.is-minimized .logo-container { justify-content: center; padding: 0.5rem; }
+        aside.is-minimized .user-avatar-container { justify-content: center; width: 100%; }
+        aside.is-minimized .logo-icon { width: 36px; height: 36px; }
+        
+        .sidebar-link i { transition: margin 0.2s; }
+
+        .g-btn { background-color: var(--g-brand); color: white; transition: all 0.2s; text-align: center; display: inline-block; }
+        html.dark .g-btn { background-color: rgba(167, 139, 250, 0.15); color: #c4b5fd; border: 1px solid rgba(167, 139, 250, 0.3); }
+        html.dark .g-btn:hover { background-color: rgba(167, 139, 250, 0.25); box-shadow: 0 4px 12px rgba(167, 139, 250, 0.2); }
+
+        .g-input {
+            width: 100%; padding: 0.6rem 1rem; border-radius: 0.75rem; border: 1px solid #e5e7eb;
+            background: #fff; font-size: 0.85rem; transition: all 0.2s; color: #111827;
+        }
+        .g-input:focus { outline: none; border-color: var(--g-brand); box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1); }
+        html.dark .g-input { background: rgba(11, 22, 48, 0.5); border-color: rgba(255, 255, 255, 0.08); color: #f3f4f6; }
+        html.dark .g-input:focus { border-color: #a78bfa; box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.15); }
+
+        .grid-bg-light {
+            background-image: linear-gradient(to right, rgba(0, 0, 0, 0.03) 1px, transparent 1px),
+                              linear-gradient(to bottom, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+        html.dark .grid-bg-light {
+            background-image: linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+                              linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+        }
+        .logo-text { font-weight: 800; letter-spacing: -0.03em; }
+
+        .sidebar-link {
+            display: flex; align-items: center; gap: 0.6rem; padding: 0.5rem 0.75rem; border-radius: 0.6rem;
+            font-size: 0.85rem; font-weight: 600; color: #4b5563; transition: all 0.2s;
+        }
+        html.dark .sidebar-link { color: #9ca3af; }
+        .sidebar-link:hover { background: #f3f4f6; color: #111827; }
+        html.dark .sidebar-link:hover { background: rgba(255,255,255,0.05); color: #fff; }
+        
+        .sidebar-link.active {
+            background: #f5f3ff; color: var(--g-brand);
+        }
+        html.dark .sidebar-link.active {
+            background: rgba(167, 139, 250, 0.1); color: #c4b5fd;
+        }
+
+        .dash-card {
+            background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(20px);
+            border: 1px solid rgba(0, 0, 0, 0.04); border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        html.dark .dash-card {
+            background: rgba(11, 22, 48, 0.5); border: 1px solid rgba(255, 255, 255, 0.06);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+        }
+        
+        .score-badge {
+            font-size: 0.65rem; font-weight: 800; padding: 0.15rem 0.4rem; border-radius: 0.3rem;
+        }
+
+        /* Tooltip Styles */
+        .sidebar-tooltip {
+            position: absolute; left: 100%; margin-left: 0.5rem; padding: 0.5rem 0.75rem;
+            background: #111827; color: #fff; font-size: 0.75rem; font-weight: 600;
+            border-radius: 0.5rem; white-space: nowrap; opacity: 0; visibility: hidden;
+            transition: all 0.2s; pointer-events: none; z-index: 50; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        html.dark .sidebar-tooltip { background: #1f2937; border: 1px solid rgba(255,255,255,0.1); }
+        .sidebar-link:hover .sidebar-tooltip { opacity: 1; visibility: visible; transform: translateX(5px); }
+        aside:not(.is-minimized) .sidebar-tooltip { display: none; }
+
+        /* Fix for tooltip clipping when minimized */
+        aside.is-minimized, 
+        aside.is-minimized .flex-1.overflow-y-auto { 
+            overflow: visible !important; 
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 10px; }
+        html.dark ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); }
+    </style>
+</head>
+
+<body class="grid-bg-light h-screen overflow-hidden flex text-gray-900 dark:text-gray-100 text-[13px]" hx-boost="true">
+    <div class="htmx-progress"></div>
+
+    <!-- ── Sidebar ── -->
+    <aside id="main-sidebar" class="w-[240px] flex-shrink-0 border-r g-divider bg-white/70 dark:bg-[#050d1e]/80 backdrop-blur-xl flex flex-col z-20">
+        <!-- Logo / Branding -->
+        <div class="h-14 flex items-center px-6 border-b g-divider shrink-0 logo-container">
+            <a href="{% url 'frontend:dashboard' %}" class="flex items-center gap-2.5 group no-underline overflow-hidden">
+                <div class="w-7 h-7 rounded-lg flex items-center justify-center font-mono font-black text-xs bg-brand-600 dark:bg-transparent dark:border dark:border-[rgba(167,139,250,.35)] text-white dark:text-[#c4b5fd] group-hover:scale-105 transition-transform shrink-0 logo-icon">NX</div>
+                <div class="branding-text">
+                    <div class="text-[0.85rem] font-bold text-gray-900 dark:text-white leading-tight truncate max-w-[140px]">{{ request.user.workspace.name }}</div>
+                    <div class="text-[0.55rem] font-bold text-brand-600 dark:text-brand-400 uppercase tracking-tighter">Powered by NexATS</div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Navigation Links -->
+        <div class="flex-1 overflow-y-auto p-3 space-y-0.5">
+            <div class="nav-section-title text-[0.6rem] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2 px-3 mt-2">Overview</div>
+            
+            <a href="{% url 'frontend:dashboard' %}" class="sidebar-link relative {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                <i class="ph ph-squares-four text-[1.1rem]"></i> <span class="sidebar-text">Dashboard</span>
+                <span class="sidebar-tooltip">Dashboard</span>
+            </a>
+            <a href="{% url 'jobs:list' %}" class="sidebar-link relative {% if 'jobs' in request.path %}active{% endif %}">
+                <i class="ph ph-briefcase text-[1.1rem]"></i> <span class="sidebar-text">Jobs</span>
+                <span class="sidebar-tooltip">Jobs</span>
+            </a>
+            <a href="{% url 'candidates:list' %}" class="sidebar-link relative {% if 'candidates' in request.path %}active{% endif %}">
+                <i class="ph ph-users text-[1.1rem]"></i> <span class="sidebar-text">Candidates</span>
+                <span class="sidebar-tooltip">Candidates</span>
+            </a>
+            <a href="{% url 'interviews:calendar' %}" class="sidebar-link relative {% if 'interviews' in request.path %}active{% endif %}">
+                <i class="ph ph-calendar-blank text-[1.1rem]"></i> <span class="sidebar-text">Interviews</span>
+                <span class="sidebar-tooltip">Interviews</span>
+            </a>
+            
+            <div class="nav-section-title text-[0.6rem] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2 px-3 mt-5">Workspace</div>
+            
+            <a href="#" class="sidebar-link relative">
+                <i class="ph ph-chart-line-up text-[1.1rem]"></i> <span class="sidebar-text">Analytics</span>
+                <span class="sidebar-tooltip">Analytics</span>
+            </a>
+            {% if request.user.role == 'ADMIN' or request.user.role == 'RECRUITER' %}
+            <a href="{% url 'users:team' %}" class="sidebar-link relative {% if 'team' in request.path %}active{% endif %}">
+                <i class="ph ph-users-three text-[1.1rem]"></i> <span class="sidebar-text">Team</span>
+                <span class="sidebar-tooltip">Team</span>
+            </a>
+            {% endif %}
+            <a href="{% url 'users:settings' %}" class="sidebar-link relative {% if 'settings' in request.path %}active{% endif %}">
+                <i class="ph ph-gear text-[1.1rem]"></i> <span class="sidebar-text">Settings</span>
+                <span class="sidebar-tooltip">Settings</span>
+            </a>
+
+            <!-- Mini Toggle Button -->
+            <button onclick="toggleSidebar()" class="w-full mt-4 flex items-center gap-3 p-2.5 rounded-xl hover:bg-gray-100 dark:hover:bg-white/5 transition-colors text-gray-500 dark:text-gray-400 relative sidebar-link">
+                <i id="sidebar-toggle-icon" class="ph ph-caret-double-left text-lg"></i> <span class="sidebar-text text-[0.8rem] font-bold">Collapse Sidebar</span>
+                <span id="sidebar-toggle-tooltip" class="sidebar-tooltip">Expand Sidebar</span>
+            </button>
+        </div>
+
+        <!-- User Profile Bottom -->
+        <div class="p-3 border-t g-divider shrink-0">
+            <!-- Profile dropdown trigger -->
+            <div class="w-full relative group">
+                <button class="w-full flex items-center gap-3 p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-white/5 transition-colors text-left focus:outline-none focus:ring-2 focus:ring-brand-500 user-avatar-container">
+                    <div class="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center text-blue-700 dark:text-blue-300 font-bold text-[0.65rem] ring-2 ring-white dark:ring-[#050d1e] uppercase shrink-0">
+                        {{ request.user.first_name.0 }}{{ request.user.last_name.0 }}
+                    </div>
+                    <div class="flex-1 min-w-0 user-details">
+                        <div class="text-[0.8rem] font-bold truncate">{{ request.user.first_name }} {{ request.user.last_name }}</div>
+                        <div class="text-[0.6rem] g-sub-text truncate">{{ request.user.email }}</div>
+                    </div>
+                </button>
+                
+                <!-- Improved hover menu - narrow list above icon -->
+                <div class="absolute bottom-full left-0 w-full mb-2 bg-white dark:bg-[#081023] border g-divider rounded-xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-30 translate-y-1 group-hover:translate-y-0 overflow-hidden">
+                    <div class="p-2 border-b g-divider text-center bg-gray-50 dark:bg-white/5">
+                        <div class="text-[0.65rem] font-bold truncate">{{ request.user.first_name }}</div>
+                        <div class="text-[0.55rem] g-sub-text truncate">{{ request.user.email }}</div>
+                    </div>
+                    <a href="{% url 'frontend:logout' %}" hx-boost="false" class="flex flex-col items-center justify-center gap-1 px-2 py-3 text-[0.65rem] font-bold text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors text-center" title="Logout">
+                        <i class="ph ph-sign-out text-lg"></i>
+                        <span class="block">Logout</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- ── Main Content Area ── -->
+    <div id="main-content" class="flex flex-col flex-1 min-w-0 bg-transparent">
+        
+        <!-- Header -->
+        <header class="h-16 border-b g-divider bg-white/50 dark:bg-[#050d1e]/50 backdrop-blur-xl flex items-center justify-between px-6 shrink-0 z-10">
+            
+            <!-- Global Search -->
+            <div class="max-w-md w-full relative">
+                <i class="ph ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                <input type="text" placeholder="Search candidates, jobs, or skills... (Ctrl+K)" class="g-input pl-9 w-full bg-gray-50 dark:bg-white/5 border-transparent focus:border-brand-500 rounded-full hidden sm:block">
+            </div>
+
+            <div class="flex items-center gap-3">
+                <a href="{% url 'jobs:create' %}" class="g-btn px-4 py-2 rounded-full text-[0.8rem] text-sm font-bold shadow-sm hidden sm:inline-block hover:-translate-y-0.5">
+                    + New Job
+                </a>
+                
+                <button class="w-9 h-9 rounded-full flex items-center justify-center hover:bg-gray-100 dark:hover:bg-white/5 text-gray-500 dark:text-gray-400 transition relative">
+                    <i class="ph ph-bell text-lg"></i>
+                    <!-- Notification dot -->
+                    <!-- <span class="absolute top-2 right-2 w-2 h-2 bg-red-500 border-2 border-white dark:border-[#050d1e] rounded-full"></span> -->
+                </button>
+                
+                <div class="h-5 border-l g-divider mx-1"></div>
+
+                <button onclick="dsToggleTheme()" class="w-9 h-9 rounded-full flex items-center justify-center hover:bg-gray-100 dark:hover:bg-white/5 text-gray-500 dark:text-gray-400 transition" id="theme-pill">
+                    <span id="theme-icon">🌙</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Scrollable Content -->
+        <main class="flex-1 overflow-y-auto p-4 sm:p-8 relative">
+            <div class="absolute right-0 top-0 w-96 h-96 bg-brand-400/5 rounded-full blur-[100px] pointer-events-none -z-10"></div>
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    <script>
+        function dsToggleTheme() {
+            var d = document.documentElement.classList.contains('dark');
+            if (d) { 
+                document.documentElement.classList.remove('dark'); 
+                localStorage.setItem('ds_theme', 'light'); 
+            } else { 
+                document.documentElement.classList.add('dark'); 
+                localStorage.setItem('ds_theme', 'dark'); 
+            }
+            dsUpdateToggle();
+        }
+        function dsUpdateToggle() {
+            var d = document.documentElement.classList.contains('dark');
+            var i = document.getElementById('theme-icon');
+            if (i) i.textContent = d ? '🌙' : '☀️';
+        }
+        dsUpdateToggle();
+
+        // ── Sidebar Toggle Logic ──
+        function toggleSidebar() {
+            const sidebar = document.getElementById('main-sidebar');
+            const icon = document.getElementById('sidebar-toggle-icon');
+            const isMin = sidebar.classList.toggle('is-minimized');
+            
+            icon.classList.toggle('ph-caret-double-left', !isMin);
+            icon.classList.toggle('ph-caret-double-right', isMin);
+            
+            localStorage.setItem('sidebar_minimized', isMin);
+        }
+
+        function initSidebar() {
+            const sidebar = document.getElementById('main-sidebar');
+            const icon = document.getElementById('sidebar-toggle-icon');
+            const isMin = localStorage.getItem('sidebar_minimized') === 'true';
+            
+            if (isMin) {
+                sidebar.classList.add('is-minimized');
+                if (icon) {
+                    icon.classList.add('ph-caret-double-right');
+                    icon.classList.remove('ph-caret-double-left');
+                }
+            }
+        }
+        document.addEventListener('DOMContentLoaded', initSidebar);
+    </script>
+</body>
+</html>

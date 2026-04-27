@@ -1,0 +1,378 @@
+{% extends 'base_app.html' %}
+{% block content %}
+
+<div class="max-w-[1600px] mx-auto pb-20" x-data="{ showRemove: false, removeMember: { id: null, name: '' }, showDeleteDept: false, deleteDept: { id: null, name: '' } }">
+    <!-- HEADER -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div>
+            <div class="flex items-center gap-2 mb-1">
+                <a href="{% url 'users:team' %}" class="text-xs font-bold text-brand-500 hover:text-brand-400 flex items-center gap-1 transition-colors">
+                    <i class="ph ph-arrow-left"></i> Back to Team
+                </a>
+            </div>
+            <h1 class="text-2xl font-black logo-text text-gray-900 dark:text-white">Department Management</h1>
+            <p class="g-sub-text text-xs font-medium mt-0.5">Assign members to departments and manage resource allocation.</p>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="flex flex-col lg:flex-row gap-6">
+        
+        <!-- LEFT SIDEBAR: Department List -->
+        <div class="w-full lg:w-80 shrink-0 space-y-4">
+            <div class="dash-card p-0 overflow-hidden flex flex-col h-[calc(100vh-250px)] min-h-[500px]">
+                <div class="p-4 border-b g-divider bg-gray-50/50 dark:bg-white/[0.02]">
+                    <h3 class="text-[0.65rem] font-black uppercase tracking-[0.2em] text-gray-400 mb-3">Departments</h3>
+                    <div class="relative">
+                        <i class="ph ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs pointer-events-none"></i>
+                        <input id="deptSearch" type="text" placeholder="Search departments..." 
+                               class="g-input text-xs pl-8 py-2 w-full bg-white dark:bg-[#0f172a]"
+                               onkeyup="filterDepts()">
+                    </div>
+                </div>
+
+                <div id="deptList" class="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-1">
+                    {% for dept in departments %}
+                    <div class="group relative px-1" data-dept-name="{{ dept.name|lower }}">
+                        <a href="{% url 'users:departments_detail' dept.pk %}"
+                           class="block w-full text-left px-3 py-3 rounded-xl border transition-all pr-10
+                                  {% if selected_dept.pk == dept.pk %}
+                                  bg-brand-500/10 text-brand-500 border-brand-500/20
+                                  {% else %}
+                                  text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5 hover:text-gray-900 dark:hover:text-gray-200 border-transparent
+                                  {% endif %}">
+                            <div class="text-xs font-black truncate">{{ dept.name }}</div>
+                            <div class="text-[0.6rem] text-gray-500 mt-0.5 font-medium flex items-center gap-1.5">
+                                <i class="ph-fill ph-users text-[0.65rem]"></i>
+                                {{ dept.user_allocations.count }} member{{ dept.user_allocations.count|pluralize }}
+                            </div>
+                        </a>
+                        
+                        {% if can_create_dept %}
+                        <button @click.prevent="deleteDept = { id: '{{ dept.pk }}', name: '{{ dept.name|escapejs }}' }; showDeleteDept = true"
+                                type="button" 
+                                class="absolute top-1/2 -translate-y-1/2 right-4 opacity-0 group-hover:opacity-100 transition-all p-1.5 hover:bg-red-500/10 text-gray-400 hover:text-red-400 rounded-lg">
+                            <i class="ph ph-trash text-xs"></i>
+                        </button>
+                        {% endif %}
+                    </div>
+                    {% empty %}
+                    <div class="px-3 py-12 text-center">
+                        <i class="ph ph-buildings text-3xl text-gray-600 mb-2"></i>
+                        <p class="text-[0.7rem] text-gray-500 font-medium italic">No departments created yet.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Create Dept Form -->
+                {% if can_create_dept %}
+                <div class="p-4 border-t g-divider bg-gray-50/50 dark:bg-white/[0.02]">
+                    <form action="{% url 'users:department_manage' %}" method="POST" class="space-y-3">
+                        {% csrf_token %}
+                        <input type="text" name="name" required class="g-input text-xs py-2 w-full" placeholder="New department name...">
+                        <button type="submit" class="g-btn w-full py-2 text-[0.65rem] font-black uppercase tracking-widest rounded-xl transition-all shadow-lg shadow-brand-500/10">
+                            <i class="ph ph-plus-circle text-sm mr-1.5"></i> Create Dept
+                        </button>
+                    </form>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- RIGHT PANEL: Department Detail -->
+        <div class="flex-1 min-w-0">
+            {% if selected_dept %}
+            <div class="dash-card p-0 overflow-hidden flex flex-col h-[calc(100vh-250px)] min-h-[500px]">
+                
+                <!-- Detail Header -->
+                <div class="px-8 py-6 border-b g-divider bg-gray-50/50 dark:bg-white/[0.02] flex items-center justify-between">
+                    <div>
+                        <div class="flex items-center gap-3 mb-1">
+                            <h2 class="text-xl font-black text-gray-900 dark:text-white uppercase tracking-tight">{{ selected_dept.name }}</h2>
+                            <span class="px-2 py-0.5 rounded-full bg-brand-500/10 text-brand-500 text-[0.6rem] font-black uppercase tracking-widest border border-brand-500/10">
+                                {{ selected_dept.user_allocations.count }} Member{{ selected_dept.user_allocations.count|pluralize }}
+                            </span>
+                        </div>
+                        <p class="text-[0.7rem] text-gray-500 font-medium">Managing assignments and capacity for this department.</p>
+                    </div>
+                </div>
+
+                <!-- Detail Body -->
+                <div class="flex-1 overflow-y-auto custom-scrollbar p-8 space-y-10">
+                    
+                    <!-- Flash Messages -->
+                    {% if messages %}
+                    <div class="space-y-2 mb-6">
+                        {% for message in messages %}
+                        <div class="p-3.5 rounded-xl border flex items-start gap-3 animate-at-in-fade
+                            {% if message.tags == 'success' %}bg-emerald-500/10 border-emerald-500/20 text-emerald-400
+                            {% else %}bg-red-500/10 border-red-500/20 text-red-400{% endif %}">
+                            <i class="ph-fill ph-{% if message.tags == 'success' %}check-circle{% else %}warning-circle{% endif %} mt-0.5 text-sm"></i>
+                            <span class="text-[0.72rem] font-medium leading-relaxed">{{ message }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <!-- ROLE SECTION: Sub-Admin -->
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-7 h-7 rounded-lg bg-purple-500/10 text-purple-400 flex items-center justify-center border border-purple-500/10">
+                                <i class="ph-fill ph-shield-star text-sm"></i>
+                            </div>
+                            <span class="text-[0.7rem] font-black uppercase tracking-widest text-purple-400">Sub-Admin</span>
+                            <span class="text-[0.65rem] text-gray-500 font-medium">(Max 1 per dept)</span>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            {% for alloc in selected_dept.user_allocations.all %}
+    {% if alloc.user.role == 'SUB_ADMIN' %}
+        <div class="flex items-center justify-between p-4 bg-purple-500/5 border border-purple-500/15 rounded-2xl group transition-all hover:bg-purple-500/[0.08]">
+            <div class="flex items-center gap-4">
+                <div class="w-10 h-10 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center text-xs font-black shadow-inner border border-purple-500/20">
+                    {{ alloc.user.first_name.0 }}{{ alloc.user.last_name.0 }}
+                </div>
+                <div>
+                    <div class="text-sm font-black text-gray-900 dark:text-white">{{ alloc.user.get_full_name }}</div>
+                    <div class="text-[0.65rem] text-gray-500 font-bold uppercase tracking-wider">{{ alloc.allocation_percentage }}% Allocation</div>
+                </div>
+            </div>
+            <button @click.prevent="removeMember = { id: '{{ alloc.pk }}', name: '{{ alloc.user.get_full_name|escapejs }}' }; showRemove = true" type="button" class="p-2 text-red-400 hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all">
+                <i class="ph ph-trash text-sm"></i>
+            </button>
+        </div>
+    {% endif %}
+{% empty %}
+    <div class="col-span-full py-6 px-4 border border-dashed g-divider rounded-2xl flex flex-col items-center justify-center text-center opacity-60">
+        <i class="ph ph-shield-star text-2xl text-purple-400/50 mb-2"></i>
+        <p class="text-[0.65rem] text-gray-500 font-medium">No Sub-Admin assigned.</p>
+    </div>
+{% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- ROLE SECTION: Manager -->
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-7 h-7 rounded-lg bg-orange-400/10 text-orange-400 flex items-center justify-center border border-orange-400/10">
+                                <i class="ph-fill ph-briefcase text-sm"></i>
+                            </div>
+                            <span class="text-[0.7rem] font-black uppercase tracking-widest text-orange-400">Manager</span>
+                            <span class="text-[0.65rem] text-gray-500 font-medium">(Max 1 per dept)</span>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            {% for alloc in selected_dept.user_allocations.all %}{% if alloc.user.role == 'MANAGER' %}
+                            <div class="flex items-center justify-between p-4 bg-orange-400/5 border border-orange-400/15 rounded-2xl group transition-all hover:bg-orange-400/[0.08]">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-10 h-10 rounded-xl bg-orange-400/20 text-orange-400 flex items-center justify-center text-xs font-black shadow-inner border border-orange-400/20">
+                                        {{ alloc.user.first_name.0 }}{{ alloc.user.last_name.0 }}
+                                    </div>
+                                    <div>
+                                        <div class="text-sm font-black text-gray-900 dark:text-white">{{ alloc.user.get_full_name }}</div>
+                                        <div class="text-[0.65rem] text-gray-500 font-bold uppercase tracking-wider">{{ alloc.allocation_percentage }}% Allocation</div>
+                                    </div>
+                                </div>
+                                <button @click.prevent="removeMember = { id: '{{ alloc.pk }}', name: '{{ alloc.user.get_full_name|escapejs }}' }; showRemove = true" type="button" class="p-2 text-red-400 hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all">
+                                    <i class="ph ph-trash text-sm"></i>
+                                </button>
+                            </div>
+                            {% endif %}
+                            {% empty %}
+                            <div class="col-span-full py-6 px-4 border border-dashed g-divider rounded-2xl flex flex-col items-center justify-center text-center opacity-60">
+                                <i class="ph ph-briefcase text-2xl text-orange-400/50 mb-2"></i>
+                                <p class="text-[0.65rem] text-gray-500 font-medium">No Manager assigned.</p>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- ROLE SECTION: Employees -->
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-7 h-7 rounded-lg bg-blue-400/10 text-blue-400 flex items-center justify-center border border-blue-400/10">
+                                    <i class="ph-fill ph-users text-sm"></i>
+                                </div>
+                                <span class="text-[0.7rem] font-black uppercase tracking-widest text-blue-400">Employees</span>
+                                <span class="text-[0.65rem] text-gray-500 font-medium">Recruiters &amp; Interviewers</span>
+                            </div>
+                            <div class="relative w-48">
+                                <i class="ph ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-xs pointer-events-none"></i>
+                                <input id="empSearch" type="text" placeholder="Filter employees..." 
+                                       class="g-input text-[0.65rem] pl-8 py-1.5 w-full bg-white dark:bg-[#0f172a]"
+                                       onkeyup="filterEmployees()">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3" id="employeeGrid">
+                            {% for alloc in selected_dept.user_allocations.all %}{% if alloc.user.role == 'RECRUITER' or alloc.user.role == 'INTERVIEWER' %}
+                            <div class="flex items-center justify-between p-4 bg-blue-400/5 border border-blue-400/15 rounded-2xl group transition-all hover:bg-blue-400/[0.08]"
+                                 data-emp-name="{{ alloc.user.get_full_name|lower }}">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-10 h-10 rounded-xl bg-blue-400/20 text-blue-400 flex items-center justify-center text-xs font-black shadow-inner border border-blue-400/20">
+                                        {{ alloc.user.first_name.0 }}{{ alloc.user.last_name.0 }}
+                                    </div>
+                                    <div class="min-w-0">
+                                        <div class="text-[0.75rem] font-black text-gray-900 dark:text-white truncate">{{ alloc.user.get_full_name }}</div>
+                                        <div class="text-[0.6rem] text-gray-500 font-bold uppercase tracking-wider truncate">{{ alloc.user.get_role_display }} &bull; {{ alloc.allocation_percentage }}%</div>
+                                    </div>
+                                </div>
+                                <button @click.prevent="removeMember = { id: '{{ alloc.pk }}', name: '{{ alloc.user.get_full_name|escapejs }}' }; showRemove = true" type="button" class="p-2 text-red-400 hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all">
+                                    <i class="ph ph-trash text-sm"></i>
+                                </button>
+                            </div>
+                            {% endif %}
+                            {% endfor %}
+                        </div>
+                        {% with emp_count=selected_dept.user_allocations.all|dictsort:"user.role" %}
+                            {% if not any_employees %}
+                                <!-- This logic is a bit tricky in pure Django templates without custom tags, 
+                                     but the loop above handles it visually. -->
+                            {% endif %}
+                        {% endwith %}
+                    </div>
+
+                </div>
+
+                <!-- Assignment Footer -->
+                <div class="p-8 border-t g-divider bg-gray-50/50 dark:bg-white/[0.02]">
+                    <div x-data="{ open: false }">
+                        <button @click="open = !open" 
+                                class="w-full flex items-center justify-center gap-2.5 py-4 rounded-2xl border-2 border-dashed g-divider text-[0.7rem] font-black uppercase tracking-[0.2em] text-gray-400 transition-all hover:border-brand-500/40 hover:text-brand-500 hover:bg-brand-500/[0.02]">
+                            <i class="ph ph-user-plus text-lg"></i>
+                            <span x-text="open ? 'Cancel Assignment' : 'Assign Member to Department'"></span>
+                        </button>
+
+                        <div x-show="open" x-transition class="mt-4 p-6 bg-white dark:bg-[#111827] rounded-2xl border g-divider shadow-xl">
+                            <form method="POST" action="{% url 'users:dept_assign_member' %}" class="space-y-6">
+                                {% csrf_token %}
+                                <input type="hidden" name="dept_id" value="{{ selected_dept.pk }}">
+                                
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div class="space-y-2">
+                                        <label class="text-[0.65rem] font-black uppercase tracking-widest text-gray-400 ml-1">Select Teammate</label>
+                                        <div class="relative">
+                                            <select name="user_id" required class="g-input text-xs font-black py-3 appearance-none pr-10">
+                                                <option value="">Choose a user...</option>
+                                                {% for member in members %}{% if member.role != 'ADMIN' %}
+                                                <option value="{{ member.pk }}">{{ member.get_full_name }} ({{ member.get_role_display }})</option>
+                                                {% endif %}{% endfor %}
+                                            </select>
+                                            <i class="ph ph-caret-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+                                        </div>
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label class="text-[0.65rem] font-black uppercase tracking-widest text-gray-400 ml-1">Allocation Level (%)</label>
+                                        <div class="relative">
+                                            <input type="number" name="percentage" required min="1" max="100" value="100" 
+                                                   class="g-input text-xs font-black py-3 pl-4 pr-10">
+                                            <span class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 font-black text-xs">%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex justify-end pt-2">
+                                    <button type="submit" class="g-btn px-8 py-3 rounded-xl font-black text-[0.65rem] uppercase tracking-[0.2em] shadow-xl shadow-brand-500/20">
+                                        Confirm Assignment
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            {% else %}
+            <div class="dash-card flex flex-col items-center justify-center h-[calc(100vh-250px)] min-h-[500px] text-center p-12">
+                <div class="w-20 h-20 rounded-3xl bg-brand-500/10 flex items-center justify-center mb-6 border border-brand-500/10">
+                    <i class="ph ph-buildings text-5xl text-brand-500"></i>
+                </div>
+                <h2 class="text-xl font-black text-gray-900 dark:text-white uppercase tracking-wider">Select a Department</h2>
+                <p class="text-xs text-gray-500 mt-3 max-w-xs leading-relaxed font-medium">Pick a department from the list on the left to manage its members and resource distribution.</p>
+            </div>
+            {% endif %}
+        </div>
+
+    </div>
+
+    <!-- MODAL: REMOVE MEMBER FROM DEPT -->
+    <div x-show="showRemove"
+         class="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-[#050d1e]/90 backdrop-blur-xl"
+         x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+         x-cloak>
+        <div @click.away="showRemove = false"
+             class="dash-card w-full max-w-xs p-6 space-y-4 shadow-2xl border-red-500/30"
+             x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 scale-95 translate-y-4" x-transition:enter-end="opacity-100 scale-100 translate-y-0">
+            <div class="text-center space-y-2.5">
+                <div class="w-11 h-11 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mx-auto border border-red-500/20 animate-pulse">
+                    <i class="ph-fill ph-warning-octagon text-xl"></i>
+                </div>
+                <h2 class="text-sm font-black text-gray-900 dark:text-white">Remove from Dept?</h2>
+                <p class="text-[0.72rem] g-sub-text font-medium leading-relaxed">
+                    Remove <span class="text-red-400 font-bold" x-text="removeMember.name"></span> from this department?
+                </p>
+            </div>
+            <div class="flex flex-col gap-2">
+                <form action="{% url 'users:dept_remove_member' %}" method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="allocation_id" :value="removeMember.id">
+                    <button type="submit" class="w-full py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold text-xs tracking-wide transition-colors shadow-md shadow-red-600/30">Yes, Remove</button>
+                </form>
+                <button @click="showRemove = false" class="w-full py-2.5 bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 rounded-lg font-bold text-xs tracking-wide transition-colors border g-divider">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: DELETE DEPARTMENT -->
+    <div x-show="showDeleteDept"
+         class="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-[#050d1e]/90 backdrop-blur-xl"
+         x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+         x-cloak>
+        <div @click.away="showDeleteDept = false"
+             class="dash-card w-full max-w-xs p-6 space-y-4 shadow-2xl border-red-500/30"
+             x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 scale-95 translate-y-4" x-transition:enter-end="opacity-100 scale-100 translate-y-0">
+            <div class="text-center space-y-2.5">
+                <div class="w-11 h-11 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mx-auto border border-red-500/20 animate-pulse">
+                    <i class="ph-fill ph-warning-octagon text-xl"></i>
+                </div>
+                <h2 class="text-sm font-black text-gray-900 dark:text-white">Delete Department?</h2>
+                <p class="text-[0.72rem] g-sub-text font-medium leading-relaxed">
+                    Delete <span class="text-red-400 font-bold" x-text="deleteDept.name"></span> permanently? Users will remain in the workspace.
+                </p>
+            </div>
+            <div class="flex flex-col gap-2">
+                <form action="{% url 'users:dept_delete' %}" method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="dept_id" :value="deleteDept.id">
+                    <button type="submit" class="w-full py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold text-xs tracking-wide transition-colors shadow-md shadow-red-600/30">Yes, Delete Dept</button>
+                </form>
+                <button @click="showDeleteDept = false" class="w-full py-2.5 bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 rounded-lg font-bold text-xs tracking-wide transition-colors border g-divider">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<style>
+    [x-cloak] { display: none !important; }
+</style>
+
+<script>
+    function filterDepts() {
+        const query = document.getElementById('deptSearch').value.toLowerCase();
+        const depts = document.querySelectorAll('#deptList [data-dept-name]');
+        depts.forEach(el => {
+            const name = el.getAttribute('data-dept-name');
+            el.style.display = name.includes(query) ? 'block' : 'none';
+        });
+    }
+
+    function filterEmployees() {
+        const query = document.getElementById('empSearch').value.toLowerCase();
+        const emps = document.querySelectorAll('#employeeGrid [data-emp-name]');
+        emps.forEach(el => {
+            const name = el.getAttribute('data-emp-name');
+            el.style.display = name.includes(query) ? 'flex' : 'none';
+        });
+    }
+</script>
+
+{% endblock %}

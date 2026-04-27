@@ -1,0 +1,16 @@
+AI-powered Applicant Tracking System (ATS) developed by Metrix AI Software Solution. The system is designed to streamline recruitment processes for HR professionals, recruiters, and staffing agencies by centralizing job postings, candidate management, and interview scheduling into one efficient platform.
+
+Key Features Explained in the Demo:
+Dashboard Overview (0:09 - 0:34): Provides a bird's-eye view of your recruitment health, showing total companies, open positions, new vs. total applications, hired/rejected candidates, and active interview status.
+Category & Skill Management (0:39 - 0:56): Allows you to define specific job categories and required skill sets to organize your hiring pipeline effectively.
+Company & Location Tracking (0:56 - 1:35): Enables registration of client companies and management of multiple work locations, making it ideal for recruitment consultancies.
+Job Posting Module (1:35 - 2:20): A comprehensive tool to create new job vacancies, including job descriptions, salary types (full-time/part-time), experience levels, and application deadlines.
+Candidate Pipeline (2:22 - 3:22): Features a user-friendly drag-and-drop interface to move candidates through stages: Applied, Phone Screening, Interview Scheduled, Hired, Rejected, or Expired.
+Candidate Database (3:22 - 3:41): A centralized repository to import or manually enter candidate data and existing resume databases.
+Interview Scheduling (3:41 - 4:21): Includes a built-in calendar and management tool to track upcoming interviews, candidate details, and employer assignments.
+Team Management (4:23 - 4:36): Allows you to add and manage your recruitment team members within the platform.
+Reporting & Analytics (4:37 - 4:49): Generates reports and status charts, giving insights into application numbers, hiring rates, and job posting success.
+This ATS acts as a digital workspace to reduce manual effort, improve hiring speed, and ensure better organization of the entire recruitment lifecycle. The system is also customizable based on specific organizational needs.
+
+
+

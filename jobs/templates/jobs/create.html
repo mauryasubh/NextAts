@@ -1,0 +1,85 @@
+{% extends 'base_app.html' %}
+{% block content %}
+<div class="max-w-3xl mx-auto space-y-8 py-4">
+
+    <!-- System Messages -->
+    {% if messages %}
+        <div class="mb-4 space-y-2">
+            {% for message in messages %}
+                <div class="px-4 py-3 rounded-xl text-sm font-semibold {% if message.tags == 'error' %}bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400{% else %}bg-green-50 text-green-600 dark:bg-green-500/10 dark:text-green-400{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <div>
+        <a href="{% url 'jobs:list' %}" class="text-sm font-bold text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors mb-4 inline-block">&larr; Back to Jobs</a>
+        <h1 class="text-2xl sm:text-3xl font-bold logo-text mb-1">Create Job Requisition</h1>
+        <p class="g-sub-text text-sm">Define the role, requirements, and AI parsing strictness.</p>
+    </div>
+
+    <!-- Form Module -->
+    <div class="dash-card p-6 sm:p-8">
+        <form method="POST" class="space-y-6">
+            {% csrf_token %}
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+                <div class="md:col-span-2 space-y-5">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5 ml-1">Job Title</label>
+                        <input type="text" name="title" class="g-input" placeholder="e.g. Senior Frontend Engineer" required>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5 ml-1">Job Description & Required Skills</label>
+                        <textarea name="description" rows="6" class="g-input resize-y" placeholder="Describe the role, responsibilities, and key technologies required..." required></textarea>
+                    </div>
+                </div>
+
+                <!-- Side Panel (Settings) -->
+                <div class="space-y-5 bg-gray-50 dark:bg-white/5 rounded-xl p-5 border g-divider">
+                    
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5 ml-1">Job Category</label>
+                        <select name="category" class="g-input cursor-pointer appearance-none">
+                            {% for choice_val, choice_label in category_choices %}
+                                <option value="{{ choice_val }}">{{ choice_label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5 ml-1">Initial Status</label>
+                        <select name="status" class="g-input cursor-pointer appearance-none">
+                            {% for choice_val, choice_label in status_choices %}
+                                <option value="{{ choice_val }}">{{ choice_label }}</option>
+                            {% endfor %}
+                        </select>
+                        <p class="text-[0.65rem] g-sub-text mt-1.5 ml-1">Drafts don't count towards plan limits.</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5 ml-1 flex items-center gap-1.5">
+                            AI Strictness <i class="ph-fill ph-brain text-brand-500"></i>
+                        </label>
+                        <input type="range" name="ai_parsing_strictness" min="1" max="100" value="80" class="w-full accent-brand-500 mb-1">
+                        <div class="flex justify-between text-[0.6rem] font-bold text-gray-400">
+                            <span>Loose (0)</span>
+                            <span>Strict (100)</span>
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+
+            <div class="pt-6 border-t g-divider flex justify-end">
+                <button type="submit" class="g-btn px-8 py-3 rounded-xl font-bold shadow-lg hover:-translate-y-0.5 transition-all">
+                    Create Requisition
+                </button>
+            </div>
+        </form>
+    </div>
+
+</div>
+{% endblock %}

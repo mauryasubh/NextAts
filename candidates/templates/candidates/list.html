@@ -1,0 +1,113 @@
+{% extends 'base_app.html' %}
+{% block content %}
+<style>
+    /* View Toggle Logic */
+    .view-container.list-view .grid-layout { display: none; }
+    .view-container.grid-view .list-layout { display: none; }
+</style>
+
+<div class="max-w-[1600px] mx-auto space-y-6 pb-20" x-data="{ activeTab: 'active', viewMode: 'grid' }">
+    
+    <!-- System Messages -->
+    {% if messages %}
+        <div class="mb-4 space-y-2">
+            {% for message in messages %}
+                <div class="px-4 py-3 rounded-xl text-sm font-semibold {% if message.tags == 'error' %}bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400{% else %}bg-green-50 text-green-600 dark:bg-green-500/10 dark:text-green-400{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Header & Search Area -->
+    <div class="flex flex-col gap-6 mb-8">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div>
+                <h1 class="text-3xl font-bold logo-text mb-1.5 text-gray-900 dark:text-white">Global Candidate Pool</h1>
+                <p class="g-sub-text text-sm font-medium">Every talent profile managed across your workspace.</p>
+            </div>
+            <a href="{% url 'candidates:create' %}" class="g-btn px-6 py-2.5 text-sm rounded-xl font-bold shadow-lg shadow-brand-500/20 hover:-translate-y-0.5 transition-all w-fit">
+                + Add New Candidate
+            </a>
+        </div>
+
+        <!-- Filter Bar -->
+        <form method="GET" class="flex flex-wrap items-center gap-3 p-4 bg-white/50 dark:bg-[#050d1e]/50 backdrop-blur-xl border g-divider rounded-2xl shadow-sm">
+            <div class="flex-1 min-w-[300px] relative">
+                <i class="ph ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                <input type="text" name="q" value="{{ search_query }}" placeholder="Search by name, email or skills..." class="g-input pl-10 w-full bg-white dark:bg-white/5">
+            </div>
+            
+            <div class="w-48 relative">
+                <select name="category" onchange="this.form.submit()" class="g-input w-full appearance-none bg-white dark:bg-white/5 font-bold cursor-pointer">
+                    <option value="">All Categories</option>
+                    {% for val, label in categories %}
+                        <option value="{{ val }}" {% if current_category == val %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+                <i class="ph ph-caret-down absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+            </div>
+
+            <button type="submit" class="g-btn px-6 py-2.5 rounded-xl font-bold text-xs uppercase tracking-widest hidden md:block">Apply Filters</button>
+            <a href="{% url 'candidates:list' %}" class="px-4 py-2 text-xs font-bold text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">Reset</a>
+
+            <div class="h-8 border-l g-divider mx-1 hidden lg:block"></div>
+
+            <!-- View Toggle -->
+            <div class="bg-gray-100 dark:bg-white/5 p-1 rounded-xl border g-divider flex items-center shadow-sm">
+                <button type="button" @click="viewMode = 'grid'" :class="viewMode === 'grid' ? 'bg-white dark:bg-brand-500/20 text-brand-600 dark:text-brand-400 shadow-sm border dark:border-brand-500/30' : 'text-gray-400 hover:text-gray-600'" class="w-9 h-9 flex items-center justify-center rounded-lg transition-all">
+                    <i class="ph ph-squares-four text-xl"></i>
+                </button>
+                <button type="button" @click="viewMode = 'list'" :class="viewMode === 'list' ? 'bg-white dark:bg-brand-500/20 text-brand-600 dark:text-brand-400 shadow-sm border dark:border-brand-500/30' : 'text-gray-400 hover:text-gray-600'" class="w-9 h-9 flex items-center justify-center rounded-lg transition-all">
+                    <i class="ph ph-list text-xl"></i>
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Tabs Navigation -->
+    <div class="flex items-center gap-1 border-b g-divider px-1">
+        <button @click="activeTab = 'active'" :class="activeTab === 'active' ? 'border-brand-500 text-brand-600 dark:text-brand-400' : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'" class="px-6 py-4 border-b-2 font-bold text-sm transition-all focus:outline-none flex items-center gap-2">
+            Active Candidates
+            <span class="px-2 py-0.5 rounded-full bg-brand-500/10 text-[0.65rem] font-black" :class="activeTab === 'active' ? 'bg-brand-500/20' : ''">{{ active_candidates.count }}</span>
+        </button>
+        <button @click="activeTab = 'draft'" :class="activeTab === 'draft' ? 'border-brand-500 text-brand-600 dark:text-brand-400' : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'" class="px-6 py-4 border-b-2 font-bold text-sm transition-all focus:outline-none flex items-center gap-2">
+            Draft
+            <span class="px-2 py-0.5 rounded-full bg-gray-500/10 text-[0.65rem] font-black">{{ draft_candidates.count }}</span>
+        </button>
+        <button @click="activeTab = 'expired'" :class="activeTab === 'expired' ? 'border-brand-500 text-brand-600 dark:text-brand-400' : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'" class="px-6 py-4 border-b-2 font-bold text-sm transition-all focus:outline-none flex items-center gap-2">
+            Expired
+            <span class="px-2 py-0.5 rounded-full bg-gray-500/10 text-[0.65rem] font-black">{{ expired_candidates.count }}</span>
+        </button>
+    </div>
+
+    <!-- Tab Contents -->
+    <div id="view-container">
+        
+        <!-- ACTIVE TAB -->
+        <div x-show="activeTab === 'active'" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0">
+            {% with candidates=active_candidates %}
+                {% include 'candidates/partials/candidate_views.html' %}
+            {% endwith %}
+        </div>
+
+        <!-- DRAFT TAB -->
+        <div x-show="activeTab === 'draft'" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0">
+            {% with candidates=draft_candidates %}
+                {% include 'candidates/partials/candidate_views.html' %}
+            {% endwith %}
+        </div>
+
+        <!-- EXPIRED TAB -->
+        <div x-show="activeTab === 'expired'" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0">
+            {% with candidates=expired_candidates %}
+                {% include 'candidates/partials/candidate_views.html' %}
+            {% endwith %}
+        </div>
+
+        </div>
+
+    </div>
+
+</div>
+{% endblock %}

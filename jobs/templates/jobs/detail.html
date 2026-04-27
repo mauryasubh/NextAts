@@ -1,0 +1,244 @@
+{% extends 'base_app.html' %}
+{% block content %}
+<div class="h-full flex flex-col space-y-4" x-data="{ 
+    showPool: false, 
+    poolQuery: '', 
+    poolResults: [],
+    loadingPool: false,
+    async searchPool() {
+        if (this.poolQuery.length < 2) { this.poolResults = []; return; }
+        this.loadingPool = true;
+        const res = await fetch(`{% url 'candidates:search_pool' job.id %}?q=${this.poolQuery}`);
+        const data = await res.json();
+        this.poolResults = data.results;
+        this.loadingPool = false;
+    }
+}">
+
+    <!-- System Messages -->
+    {% if messages %}
+        <div class="mb-4 space-y-2">
+            {% for message in messages %}
+                <div class="px-3 py-2 rounded-xl text-xs font-semibold {% if message.tags == 'error' %}bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400{% else %}bg-green-50 text-green-600 dark:bg-green-500/10 dark:text-green-400{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- ── Compact Header ── -->
+    <div class="shrink-0 flex items-center justify-between gap-4 py-2 border-b g-divider">
+        <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 text-[0.65rem] font-bold text-gray-500 mb-1">
+                <a href="{% url 'jobs:list' %}" class="hover:text-brand-500 transition-colors uppercase tracking-tight">&larr; Back to Pipelines</a>
+                <span class="opacity-30">/</span>
+                <span class="uppercase tracking-tight">{{ job.get_category_display }}</span>
+            </div>
+            <div class="flex items-center gap-3">
+                <h1 class="text-xl sm:text-2xl font-black logo-text truncate">{{ job.title }}</h1>
+                {% if job.status == 'ACTIVE' %}
+                    <span class="text-[0.6rem] font-black px-2 py-0.5 bg-green-100 text-green-700 dark:bg-green-500/10 dark:text-green-400 rounded-md">ACTIVE</span>
+                {% else %}
+                    <span class="text-[0.6rem] font-black px-2 py-0.5 bg-red-100 text-red-700 dark:bg-red-500/10 dark:text-red-400 rounded-md">{{ job.status }}</span>
+                {% endif %}
+            </div>
+            <p class="g-sub-text text-[0.7rem] line-clamp-1 mt-0.5 font-medium opacity-80 max-w-xl">{{ job.description }}</p>
+        </div>
+        
+        <div class="flex items-center gap-2 shrink-0">
+            <button @click="showPool = true" class="px-3 py-2 text-xs font-bold bg-white text-gray-800 border g-divider dark:bg-white/5 dark:text-gray-200 rounded-lg hover:bg-gray-50 dark:hover:bg-white/10 transition-colors">
+                <i class="ph ph-magnifying-glass mr-1"></i> Choose from Pool
+            </button>
+            <a href="{% url 'jobs:edit' job.pk %}" class="px-3 py-2 text-xs font-bold bg-white text-gray-800 border g-divider dark:bg-white/5 dark:text-gray-200 rounded-lg hover:bg-gray-50 dark:hover:bg-white/10 transition-colors">
+                <i class="ph ph-pencil-simple mr-1"></i> Edit
+            </a>
+            <a href="{% url 'candidates:create' %}?job_id={{ job.id }}" class="g-btn px-4 py-2 text-xs rounded-lg font-bold shadow-lg shadow-brand-500/20 whitespace-nowrap hover:-translate-y-0.5 transition-all">
+                + Add Candidate
+            </a>
+        </div>
+    </div>
+
+    <!-- ── Kanban Wrapper ── -->
+    <div class="flex-1 overflow-x-auto pb-6">
+        <div class="flex gap-4 h-full min-w-max items-stretch">
+            
+            <!-- SOURCED -->
+            <div class="w-80 flex flex-col h-full bg-gray-50/50 dark:bg-white/[0.02] rounded-2xl border g-divider overflow-hidden">
+                <div class="p-4 border-b g-divider flex items-center justify-between bg-white/50 dark:bg-[#050d1e]/50">
+                    <div class="flex items-center gap-2">
+                        <div class="w-2 h-2 rounded-full bg-blue-500"></div>
+                        <h3 class="text-[0.7rem] font-black uppercase tracking-widest text-gray-500">Sourced</h3>
+                    </div>
+                </div>
+                <div class="kanban-column p-3 space-y-3 flex-1 overflow-y-auto" data-stage="SOURCED">
+                    {% for app in applications %}
+                        {% if app.stage == 'SOURCED' %}
+                            {% include 'jobs/partials/candidate_kanban_card.html' with application=app %}
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- INTERVIEWING -->
+            <div class="w-80 flex flex-col h-full bg-gray-50/50 dark:bg-white/[0.02] rounded-2xl border g-divider overflow-hidden">
+                <div class="p-4 border-b g-divider flex items-center justify-between bg-white/50 dark:bg-[#050d1e]/50">
+                    <div class="flex items-center gap-2">
+                        <div class="w-2 h-2 rounded-full bg-purple-500"></div>
+                        <h3 class="text-[0.7rem] font-black uppercase tracking-widest text-gray-500">Interviewing</h3>
+                    </div>
+                </div>
+                <div class="kanban-column p-3 space-y-3 flex-1 overflow-y-auto" data-stage="INTERVIEWING">
+                    {% for app in applications %}
+                        {% if app.stage == 'INTERVIEWING' %}
+                            {% include 'jobs/partials/candidate_kanban_card.html' with application=app %}
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- OFFER -->
+            <div class="w-80 flex flex-col h-full bg-gray-50/50 dark:bg-white/[0.02] rounded-2xl border g-divider overflow-hidden">
+                <div class="p-4 border-b g-divider flex items-center justify-between bg-white/50 dark:bg-[#050d1e]/50">
+                    <div class="flex items-center gap-2">
+                        <div class="w-2 h-2 rounded-full bg-green-500"></div>
+                        <h3 class="text-[0.7rem] font-black uppercase tracking-widest text-gray-500">Offered / Hired</h3>
+                    </div>
+                </div>
+                <div class="kanban-column p-3 space-y-3 flex-1 overflow-y-auto" data-stage="OFFER">
+                    {% for app in applications %}
+                        {% if app.stage == 'OFFER' or app.stage == 'HIRED' %}
+                            {% include 'jobs/partials/candidate_kanban_card.html' with application=app %}
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- REJECTED -->
+            <div class="w-80 flex flex-col h-full bg-gray-50/30 dark:bg-white/[0.01] rounded-2xl border g-divider overflow-hidden opacity-60">
+                <div class="p-4 border-b g-divider flex items-center justify-between bg-white/30 dark:bg-[#050d1e]/30">
+                    <div class="flex items-center gap-2">
+                        <div class="w-2 h-2 rounded-full bg-red-400"></div>
+                        <h3 class="text-[0.7rem] font-black uppercase tracking-widest text-gray-500">Rejected</h3>
+                    </div>
+                </div>
+                <div class="kanban-column p-3 space-y-3 flex-1 overflow-y-auto" data-stage="REJECTED">
+                    {% for app in applications %}
+                        {% if app.stage == 'REJECTED' %}
+                            {% include 'jobs/partials/candidate_kanban_card.html' with application=app %}
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ── Candidate Pool Modal (Alpine.js) ── -->
+    <template x-teleport="body">
+        <div x-show="showPool" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#050d1e]/80 backdrop-blur-sm" x-cloak>
+            <div @click.away="showPool = false" class="bg-white dark:bg-[#081023] w-full max-w-lg rounded-2xl border g-divider shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+                <div class="p-5 border-b g-divider flex items-center justify-between bg-gray-50 dark:bg-white/5">
+                    <h3 class="text-sm font-black uppercase tracking-widest text-gray-900 dark:text-white">Candidate Pool</h3>
+                    <button @click="showPool = false" class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 transition-colors">
+                        <i class="ph ph-x text-lg"></i>
+                    </button>
+                </div>
+                <div class="p-5 space-y-4">
+                    <div class="relative">
+                        <i class="ph ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                        <input type="text" x-model="poolQuery" @input.debounce.300ms="searchPool()" placeholder="Search from global candidates..." class="g-input pl-10" autofocus>
+                    </div>
+
+                    <div class="max-h-[350px] overflow-y-auto space-y-1 pr-1">
+                        <template x-if="loadingPool">
+                            <div class="py-12 text-center text-brand-500">
+                                <i class="ph ph-circle-notch animate-spin text-3xl mb-2"></i>
+                                <p class="text-[0.6rem] font-black uppercase tracking-widest">Searching Universal Pool</p>
+                            </div>
+                        </template>
+
+                        <template x-for="c in poolResults" :key="c.id">
+                            <div class="flex items-center justify-between p-3 rounded-xl border border-transparent hover:border-brand-500/30 hover:bg-brand-500/5 transition-all group">
+                                <div class="flex items-center gap-3 min-w-0">
+                                    <div class="w-10 h-10 rounded-xl bg-brand-100 dark:bg-brand-900/40 flex items-center justify-center text-brand-600 dark:text-brand-300 font-bold text-xs shrink-0" x-text="c.initials"></div>
+                                    <div class="min-w-0">
+                                        <div class="text-xs font-bold truncate" x-text="c.name"></div>
+                                        <div class="text-[0.65rem] text-gray-500 truncate" x-text="c.email"></div>
+                                    </div>
+                                </div>
+                                <form method="POST" :action="`{% url 'candidates:assign_from_pool' job.id %}`">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="candidate_id" :value="c.id">
+                                    <button type="submit" class="px-3 py-1.5 text-[0.65rem] font-black uppercase bg-brand-500/10 text-brand-600 dark:text-brand-400 hover:bg-brand-500/20 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                                        Assign
+                                    </button>
+                                </form>
+                            </div>
+                        </template>
+
+                        <template x-if="poolResults.length === 0 && poolQuery.length >= 2 && !loadingPool">
+                            <div class="py-12 text-center">
+                                <i class="ph ph-user-minus text-3xl text-gray-300 mb-2"></i>
+                                <p class="text-[0.65rem] font-black text-gray-500 uppercase">No matching unassigned talent.</p>
+                            </div>
+                        </template>
+                        <template x-if="poolQuery.length < 2 && !loadingPool">
+                            <div class="py-12 text-center opacity-30">
+                                <i class="ph ph-magnifying-glass text-4xl mb-2"></i>
+                                <p class="text-[0.6rem] font-black uppercase tracking-widest">Start typing to scan pool...</p>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const columns = document.querySelectorAll('.kanban-column');
+        
+        columns.forEach(column => {
+            new Sortable(column, {
+                group: 'applications',
+                animation: 200,
+                ghostClass: 'opacity-40',
+                dragClass: 'rotate-1',
+                draggable: '.dash-card',
+                scroll: true,
+                forceFallback: false,
+                onEnd: async function (evt) {
+                    const item = evt.item;
+                    const newStage = evt.to.dataset.stage;
+                    const applicationId = item.dataset.id;
+                    
+                    if (evt.from !== evt.to) {
+                        const formData = new FormData();
+                        formData.append('stage', newStage);
+                        formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+                        
+                        try {
+                            const res = await fetch(`/candidates/application/${applicationId}/update-stage/`, {
+                                method: 'POST',
+                                body: formData,
+                                headers: {
+                                    'X-CSRFToken': '{{ csrf_token }}'
+                                }
+                            });
+                            const data = await res.json();
+                            if (data.status !== 'success') {
+                                location.reload();
+                            }
+                        } catch (e) {
+                            console.error("Stage update failed", e);
+                            location.reload();
+                        }
+                    }
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

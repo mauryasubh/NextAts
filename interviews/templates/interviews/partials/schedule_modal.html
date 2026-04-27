@@ -1,0 +1,83 @@
+<div id="scheduleModal" class="fixed inset-0 z-[100] hidden overflow-y-auto" role="dialog" aria-modal="true">
+    <!-- Backdrop -->
+    <div class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm transition-opacity"></div>
+
+    <div class="flex min-h-screen items-center justify-center p-4">
+        <div class="relative w-full max-w-lg rounded-2xl bg-white dark:bg-[#0b1630] p-6 shadow-2xl border dark:border-white/10">
+            <!-- Header -->
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <h3 class="text-xl font-bold logo-text">Schedule Interview</h3>
+                    <p class="g-sub-text text-xs">Set up a session with a candidate.</p>
+                </div>
+                <button onclick="closeScheduleModal()" class="text-gray-400 hover:text-gray-500 transition-colors">
+                    <i class="ph ph-x text-xl"></i>
+                </button>
+            </div>
+
+            <!-- Form -->
+            <form id="scheduleForm" onsubmit="submitSchedule(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-1">Candidate Application</label>
+                    <select id="applicationId" required class="g-input cursor-pointer appearance-none">
+                        <option value="">-- Select Candidate & Job --</option>
+                        {% for app in applications %}
+                            <option value="{{ app.id }}">{{ app.candidate.first_name }} {{ app.candidate.last_name }} — {{ app.job.title }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-1">Interview Title</label>
+                    <input type="text" id="interviewTitle" required class="g-input" placeholder="e.g. Technical Round 1">
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-1">Type</label>
+                        <select id="interviewType" class="g-input cursor-pointer">
+                            <option value="SCREENING">Initial Screening</option>
+                            <option value="TECHNICAL">Technical Interview</option>
+                            <option value="CULTURAL">Cultural Fit</option>
+                            <option value="FINAL">Final Round</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-1">Interviewer</label>
+                        <select id="interviewerId" class="g-input cursor-pointer">
+                            <option value="">-- Unassigned --</option>
+                            {% for user in workspace_users %}
+                                <option value="{{ user.id }}">{{ user.first_name }} {{ user.last_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-1">Start Time</label>
+                        <input type="datetime-local" id="startTime" required class="g-input">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-1">End Time</label>
+                        <input type="datetime-local" id="endTime" required class="g-input">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5 ml-1">Meeting Link (Opt)</label>
+                    <input type="url" id="locationLink" class="g-input" placeholder="https://zoom.us/j/...">
+                </div>
+
+                <div class="pt-4 flex justify-end gap-3">
+                    <button type="button" onclick="closeScheduleModal()" class="px-6 py-2.5 rounded-xl font-bold text-sm text-gray-500 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors">
+                        Cancel
+                    </button>
+                    <button type="submit" class="g-btn px-8 py-2.5 rounded-xl font-bold text-sm shadow-lg shadow-brand-500/20">
+                        Confirm Schedule
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

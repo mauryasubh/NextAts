@@ -1,0 +1,103 @@
+{% extends 'base_app.html' %}
+{% block content %}
+<div class="max-w-3xl mx-auto space-y-8 py-4">
+
+    <!-- System Messages -->
+    {% if messages %}
+        <div class="mb-4 space-y-2">
+            {% for message in messages %}
+                <div class="px-4 py-3 rounded-xl text-sm font-semibold {% if message.tags == 'error' %}bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400{% else %}bg-green-50 text-green-600 dark:bg-green-500/10 dark:text-green-400{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <div>
+        <a href="{% url 'candidates:list' %}" class="text-sm font-bold text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors mb-4 inline-block">&larr; Back to Directory</a>
+        <h1 class="text-2xl sm:text-3xl font-bold logo-text mb-1">{% if is_edit %}Edit Candidate{% else %}Add New Candidate{% endif %}</h1>
+        <p class="g-sub-text text-sm">{% if is_edit %}Update the candidate's core information and resume.{% else %}Upload a resume and assign the candidate to a job.{% endif %}</p>
+    </div>
+
+    <!-- Form Card -->
+    <div class="dash-card p-6 sm:p-8">
+        <form method="POST" enctype="multipart/form-data" class="space-y-6">
+            {% csrf_token %}
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5 ml-1">First Name</label>
+                    <input type="text" name="first_name" class="g-input" placeholder="e.g. Subhash" value="{{ candidate.first_name|default:'' }}" required>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5 ml-1">Last Name</label>
+                    <input type="text" name="last_name" class="g-input" placeholder="e.g. Maurya" value="{{ candidate.last_name|default:'' }}" required>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5 ml-1">Email Address</label>
+                    <input type="email" name="email" class="g-input" placeholder="email@example.com" value="{{ candidate.email|default:'' }}" required>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5 ml-1">Phone (Optional)</label>
+                    <input type="text" name="phone" class="g-input" placeholder="+1 (555) 000-0000" value="{{ candidate.phone|default:'' }}">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5 ml-1">Candidate Status</label>
+                    <select name="status" class="g-input cursor-pointer appearance-none">
+                        {% for val, label in status_choices %}
+                            <option value="{{ val }}" {% if candidate.status == val %}selected{% elif not is_edit and val == 'ACTIVE' %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5 ml-1">Category / Department</label>
+                    <select name="category" class="g-input cursor-pointer appearance-none">
+                        {% for val, label in category_choices %}
+                            <option value="{{ val }}" {% if candidate.category == val %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {% if not is_edit %}
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5 ml-1">Apply to Job (Optional)</label>
+                    <select name="job_id" class="g-input cursor-pointer appearance-none">
+                        <option value="">-- No specific Job (Pool only) --</option>
+                        {% for job in jobs %}
+                            <option value="{{ job.id }}" {% if job.id|stringformat:"s" == initial_job_id %}selected{% endif %}>{{ job.title }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% else %}
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5 ml-1">Current Resume</label>
+                    <div class="g-input bg-gray-50/50 dark:bg-white/5 flex items-center gap-2 overflow-hidden truncate">
+                        <i class="ph ph-file-pdf text-brand-500"></i>
+                        <span class="text-xs">{{ candidate.resume.name|default:"No resume uploaded" }}</span>
+                    </div>
+                </div>
+                {% endif %}
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5 ml-1">{% if is_edit %}Replace Resume (PDF){% else %}Resume / CV (PDF){% endif %}</label>
+                    <input type="file" name="resume" class="g-input pt-2" accept=".pdf,.doc,.docx">
+                </div>
+            </div>
+
+            <div class="pt-6 border-t g-divider flex justify-end">
+                <button type="submit" class="g-btn px-8 py-3 rounded-xl font-bold shadow-lg hover:-translate-y-0.5 transition-all">
+                    {% if is_edit %}Save Changes{% else %}Ingest & Process Candidate{% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+
+</div>
+{% endblock %}
