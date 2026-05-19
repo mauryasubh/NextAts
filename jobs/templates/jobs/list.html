@@ -33,24 +33,24 @@
 }">
     
     <!-- Header Area -->
-    <div class="flex flex-col gap-6 mb-8">
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
+    <div class="flex flex-col gap-3 mb-5">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
             <div>
-                <h1 class="text-3xl font-bold logo-text mb-1.5 text-gray-900 dark:text-white">Job Requisitions</h1>
-                <p class="g-sub-text text-sm font-medium">Pipeline management engine for your recruitment cycles.</p>
+                <h1 class="text-2xl font-bold logo-text mb-0.5 text-gray-900 dark:text-white">Job Requisitions</h1>
+                <p class="g-sub-text text-xs font-medium">Pipeline management engine for your recruitment cycles.</p>
             </div>
-            <a href="{% url 'jobs:create' %}" class="g-btn px-6 py-2.5 text-sm rounded-xl font-bold shadow-lg shadow-brand-500/20 hover:-translate-y-0.5 transition-all w-fit">
+            <a href="{% url 'jobs:create' %}" class="g-btn px-5 py-2 text-sm rounded-xl font-bold shadow-lg shadow-brand-500/20 hover:-translate-y-0.5 transition-all w-fit">
                 + New Job
             </a>
         </div>
         
         <!-- Toolbar: Filters & Toggles -->
-        <div class="flex flex-wrap items-center gap-4 p-4 bg-white/50 dark:bg-[#050d1e]/50 backdrop-blur-xl border g-divider rounded-2xl shadow-sm">
+        <div class="flex flex-wrap items-center gap-3 px-4 py-2.5 bg-white/50 dark:bg-[#050d1e]/50 backdrop-blur-xl border g-divider rounded-2xl shadow-sm">
             
             <!-- Category & Sort Filters -->
             <form id="filter-form" method="GET" class="flex flex-wrap items-center gap-3 flex-1 min-w-[300px]">
                 <div class="relative w-44">
-                    <select name="category" onchange="this.form.submit()" class="g-input appearance-none pr-10 w-full font-bold text-xs uppercase tracking-wider h-11 bg-white dark:bg-white/5">
+                    <select name="category" onchange="this.form.submit()" class="g-input appearance-none pr-10 w-full font-bold text-xs uppercase tracking-wider h-9 bg-white dark:bg-white/5">
                         <option value="ALL">All Categories</option>
                         {% for val, label in category_choices %}
                             <option value="{{ val }}" {% if current_category == val %}selected{% endif %}>{{ label }}</option>
@@ -60,7 +60,7 @@
                 </div>
 
                 <div class="relative w-44">
-                    <select name="sort" onchange="this.form.submit()" class="g-input appearance-none pr-10 w-full font-bold text-xs uppercase tracking-wider h-11 bg-white dark:bg-white/5">
+                    <select name="sort" onchange="this.form.submit()" class="g-input appearance-none pr-10 w-full font-bold text-xs uppercase tracking-wider h-9 bg-white dark:bg-white/5">
                         <option value="newest" {% if current_sort == 'newest' %}selected{% endif %}>Newest First</option>
                         <option value="oldest" {% if current_sort == 'oldest' %}selected{% endif %}>Oldest First</option>
                     </select>
@@ -74,12 +74,12 @@
             <div class="flex items-center gap-1.5 bg-gray-100 dark:bg-white/5 p-1 rounded-xl border g-divider">
                 <button @click="layoutMode = 'stacked'; localStorage.setItem('jobs_layout_mode', 'stacked')" 
                         :class="layoutMode === 'stacked' ? 'bg-white dark:bg-brand-500/20 text-brand-600 dark:text-brand-400 shadow-sm border dark:border-brand-500/30' : 'text-gray-400 hover:text-gray-600'"
-                        class="px-2.5 py-1.5 rounded-lg text-sm font-bold flex items-center gap-2 transition-all">
+                        class="px-2.5 py-1 rounded-lg text-sm font-bold flex items-center gap-2 transition-all">
                     <i class="ph ph-rows text-lg"></i> Overview
                 </button>
                 <button @click="layoutMode = 'tabs'; localStorage.setItem('jobs_layout_mode', 'tabs')" 
                         :class="layoutMode === 'tabs' ? 'bg-white dark:bg-brand-500/20 text-brand-600 dark:text-brand-400 shadow-sm border dark:border-brand-500/30' : 'text-gray-400 hover:text-gray-600'"
-                        class="px-2.5 py-1.5 rounded-lg text-sm font-bold flex items-center gap-2 transition-all">
+                        class="px-2.5 py-1 rounded-lg text-sm font-bold flex items-center gap-2 transition-all">
                     <i class="ph ph-tabs text-lg"></i> Focused
                 </button>
             </div>
@@ -88,12 +88,12 @@
             <div class="bg-gray-100 dark:bg-white/5 p-1 rounded-xl border g-divider flex items-center">
                 <button @click="viewMode = 'grid'; localStorage.setItem('jobs_view_mode', 'grid')" 
                         :class="viewMode === 'grid' ? 'bg-white dark:bg-brand-500/20 text-brand-600 dark:text-brand-400 shadow-sm border dark:border-brand-500/30' : 'text-gray-400 hover:text-gray-600'"
-                        class="w-9 h-9 flex items-center justify-center rounded-lg transition-all">
+                        class="w-8 h-8 flex items-center justify-center rounded-lg transition-all">
                     <i class="ph ph-squares-four text-xl"></i>
                 </button>
                 <button @click="viewMode = 'list'; localStorage.setItem('jobs_view_mode', 'list')" 
                         :class="viewMode === 'list' ? 'bg-white dark:bg-brand-500/20 text-brand-600 dark:text-brand-400 shadow-sm border dark:border-brand-500/30' : 'text-gray-400 hover:text-gray-600'"
-                        class="w-9 h-9 flex items-center justify-center rounded-lg transition-all">
+                        class="w-8 h-8 flex items-center justify-center rounded-lg transition-all">
                     <i class="ph ph-list text-xl"></i>
                 </button>
             </div>

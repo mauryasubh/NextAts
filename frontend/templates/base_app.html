@@ -17,6 +17,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <script src="https://unpkg.com/htmx.org@2.0.0"></script>
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
     <script>
@@ -198,10 +199,12 @@
             
             <div class="nav-section-title text-[0.6rem] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2 px-3 mt-5">Workspace</div>
             
-            <a href="#" class="sidebar-link relative">
+            {% if request.user.role == 'ADMIN' or request.user.role == 'SUB_ADMIN' or request.user.role == 'MANAGER' %}
+            <a href="{% url 'users:analytics' %}" class="sidebar-link relative {% if 'analytics' in request.path %}active{% endif %}">
                 <i class="ph ph-chart-line-up text-[1.1rem]"></i> <span class="sidebar-text">Analytics</span>
                 <span class="sidebar-tooltip">Analytics</span>
             </a>
+            {% endif %}
             {% if request.user.role == 'ADMIN' or request.user.role == 'RECRUITER' %}
             <a href="{% url 'users:team' %}" class="sidebar-link relative {% if 'team' in request.path %}active{% endif %}">
                 <i class="ph ph-users-three text-[1.1rem]"></i> <span class="sidebar-text">Team</span>
@@ -332,6 +335,7 @@
             }
         }
         document.addEventListener('DOMContentLoaded', initSidebar);
+        document.addEventListener('htmx:afterSettle', initSidebar);
     </script>
 </body>
 </html>

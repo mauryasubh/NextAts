@@ -1,5 +1,8 @@
 <div class="dash-card p-3 cursor-pointer hover:border-brand-500/50 dark:hover:border-brand-500/50 transition-all block group active:scale-95 active:rotate-1" 
-     data-id="{{ application.id }}">
+     data-id="{{ application.id }}"
+     data-score="{{ application.ai_match_score|default:'0' }}"
+     onmousedown="this._dragStartX=event.clientX; this._dragStartY=event.clientY;"
+     onclick="if(Math.abs(event.clientX-this._dragStartX)<5 && Math.abs(event.clientY-this._dragStartY)<5) window.location.href='{% url 'candidates:detail' application.candidate.pk %}?from_job={{ application.job.pk }}';">
     <div class="flex justify-between items-start mb-2">
         <div class="flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-lg bg-brand-100 text-brand-700 dark:bg-brand-900/30 dark:text-brand-300 font-bold text-xs flex items-center justify-center shrink-0">
@@ -24,3 +27,4 @@
          <span class="text-[0.6rem] font-bold text-gray-400 uppercase tracking-tight">Resume Ready</span>
     </div>
 </div>
+

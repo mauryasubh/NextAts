@@ -105,6 +105,21 @@ def dashboard(request):
         start_time__range=(today_start, today_end)
     ).order_by('start_time')
 
+    # 5. AI Highlights (Strong Candidates)
+    strong_ai_matches = Application.objects.filter(
+        job__client_company__workspace=workspace,
+        ai_match_score__gte=80
+    ).count()
+
+    # 6. Dynamic Greeting
+    current_hour = timezone.now().hour
+    if current_hour < 12:
+        greeting = "Good morning"
+    elif current_hour < 17:
+        greeting = "Good afternoon"
+    else:
+        greeting = "Good evening"
+
     context = {
         'active_jobs_count': active_jobs_count,
         'total_candidates_count': total_candidates_count,
@@ -114,6 +129,8 @@ def dashboard(request):
         'snapshot_interviewing': snapshot_interviewing,
         'recent_applications': recent_applications,
         'today_interviews': today_interviews,
+        'strong_ai_matches': strong_ai_matches,
+        'greeting': greeting,
     }
     
     return render(request, 'frontend/dashboard.html', context)

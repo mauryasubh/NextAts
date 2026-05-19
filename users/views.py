@@ -1,9 +1,13 @@
+import json
+from datetime import timedelta
 from django.shortcuts import render, redirect, get_object_or_404, reverse
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db import transaction
+from django.db.models import Count, Avg, Q
 from django.http import HttpResponseForbidden, JsonResponse
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 from .models import Workspace, User, Department, DepartmentAllocation
 from .permissions import is_global_admin, is_manager, can_invite_role, can_manage_member
 
@@ -309,3 +313,193 @@ def update_member_role(request):
             messages.error(request, "Invalid role selected.")
             
     return redirect('users:team')
+
+
+@login_required
+def analytics_view(request):
+    """
+    Workspace Analytics page — high-level recruitment performance,
+    AI utilization, and team overview. Restricted to Admin, Sub-Admin, Manager.
+    """
+    if request.user.role not in ['ADMIN', 'SUB_ADMIN', 'MANAGER']:
+        return HttpResponseForbidden("You do not have permission to view analytics.")
+
+    workspace = request.user.workspace
+
+    from jobs.models import JobRequisition
+    from candidates.models import Candidate, Application
+
+    # ── Workspace-scoped base querysets ──
+    all_jobs = JobRequisition.objects.filter(client_company__workspace=workspace)
+    all_applications = Application.objects.filter(job__client_company__workspace=workspace)
+    all_candidates = Candidate.objects.filter(workspace=workspace)
+
+    # ── Section 1: KPI Cards ──
+    active_jobs_count = all_jobs.filter(status='ACTIVE').count()
+    pipeline_count = all_applications.exclude(stage__in=['HIRED', 'REJECTED']).count()
+    hires_count = all_applications.filter(stage='HIRED').count()
+    avg_hire_score = all_applications.filter(
+        stage='HIRED', ai_match_score__isnull=False
+    ).aggregate(avg=Avg('ai_match_score'))['avg'] or 0
+
+    # Monthly deltas (current month vs last month)
+    now = timezone.now()
+    current_month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    last_month_start = (current_month_start - timedelta(days=1)).replace(day=1)
+
+    hires_this_month = all_applications.filter(stage='HIRED', applied_at__gte=current_month_start).count()
+    hires_last_month = all_applications.filter(
+        stage='HIRED', applied_at__gte=last_month_start, applied_at__lt=current_month_start
+    ).count()
+    hires_delta = hires_this_month - hires_last_month
+
+    candidates_this_month = all_candidates.filter(created_at__gte=current_month_start).count()
+    candidates_last_month = all_candidates.filter(
+        created_at__gte=last_month_start, created_at__lt=current_month_start
+    ).count()
+    candidates_delta = candidates_this_month - candidates_last_month
+
+    # ── Section 2: Recruitment Funnel ──
+    funnel_data = {
+        'Sourced': all_applications.filter(stage='SOURCED').count(),
+        'Interviewing': all_applications.filter(stage='INTERVIEWING').count(),
+        'Offer': all_applications.filter(stage='OFFER').count(),
+        'Hired': hires_count,
+        'Rejected': all_applications.filter(stage='REJECTED').count(),
+    }
+
+    # ── Section 3: Hiring Trend — precompute ALL ranges for client-side switching ──
+    all_trend_data = {}
+    for num_months in [3, 6, 12]:
+        labels = []
+        apps_data = []
+        hires_data = []
+        for i in range(num_months - 1, -1, -1):
+            dt = now - timedelta(days=i * 30)
+            month_start = dt.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+            if i == 0:
+                month_end = now
+            else:
+                next_dt = now - timedelta(days=(i - 1) * 30)
+                month_end = next_dt.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+            labels.append(month_start.strftime('%b %Y'))
+            apps_data.append(
+                all_applications.filter(applied_at__gte=month_start, applied_at__lt=month_end).count()
+            )
+            hires_data.append(
+                all_applications.filter(
+                    stage='HIRED', applied_at__gte=month_start, applied_at__lt=month_end
+                ).count()
+            )
+        all_trend_data[str(num_months)] = {
+            'labels': labels,
+            'applications': apps_data,
+            'hires': hires_data,
+        }
+
+    # ── Section 4: AI Engine Performance ──
+    total_with_resume = all_applications.filter(
+        candidate__resume__isnull=False
+    ).exclude(candidate__resume='').count()
+    ai_analyzed_count = all_applications.filter(ai_analysis_done=True).count()
+    ai_success_rate = round((ai_analyzed_count / total_with_resume * 100), 1) if total_with_resume > 0 else 0
+    ai_avg_score = all_applications.filter(
+        ai_analysis_done=True, ai_match_score__isnull=False
+    ).aggregate(avg=Avg('ai_match_score'))['avg'] or 0
+
+    # ── Section 5: Jobs by Category (Doughnut) ──
+    category_qs = all_jobs.exclude(status='CLOSED').values('category').annotate(
+        count=Count('id')
+    ).order_by('-count')
+    category_labels = []
+    category_counts = []
+    category_map = dict(JobRequisition.CATEGORY_CHOICES)
+    for item in category_qs:
+        category_labels.append(category_map.get(item['category'], item['category']))
+        category_counts.append(item['count'])
+    category_data = {'labels': category_labels, 'counts': category_counts}
+
+    # ── Section 6: AI Score Distribution (Bar) ──
+    scored_apps = all_applications.filter(ai_analysis_done=True, ai_match_score__isnull=False)
+    score_dist = {
+        '0–40 (Weak)': scored_apps.filter(ai_match_score__lt=40).count(),
+        '40–60 (Average)': scored_apps.filter(ai_match_score__gte=40, ai_match_score__lt=60).count(),
+        '60–80 (Strong)': scored_apps.filter(ai_match_score__gte=60, ai_match_score__lt=80).count(),
+        '80–100 (Excellent)': scored_apps.filter(ai_match_score__gte=80).count(),
+    }
+
+    # ── Section 7: Top 5 Jobs by Applicants ──
+    top_jobs = all_jobs.filter(status='ACTIVE').annotate(
+        app_count=Count('applications'),
+        avg_score=Avg('applications__ai_match_score')
+    ).order_by('-app_count')[:5]
+
+    # ── Section 6: Team Overview ──
+    team_members = workspace.users.all().prefetch_related(
+        'allocations__department'
+    ).order_by('role', 'date_joined')[:8]
+
+    for member in team_members:
+        if member.role == 'ADMIN':
+            member.total_pct = 100
+        else:
+            member.total_pct = sum(a.allocation_percentage for a in member.allocations.all())
+        member.dept_names = ', '.join(
+            a.department.name for a in member.allocations.all()
+        ) or '—'
+
+    # ── Quarter-wise Growth Stats ──
+    current_month = now.month
+    current_year = now.year
+    # Determine current quarter start
+    quarter_start_month = ((current_month - 1) // 3) * 3 + 1
+    quarter_start = now.replace(month=quarter_start_month, day=1, hour=0, minute=0, second=0, microsecond=0)
+    # Previous quarter
+    prev_quarter_end = quarter_start
+    prev_quarter_start_month = ((quarter_start_month - 4) % 12) + 1
+    prev_quarter_year = current_year if quarter_start_month > 3 else current_year - 1
+    prev_quarter_start = now.replace(year=prev_quarter_year, month=prev_quarter_start_month, day=1, hour=0, minute=0, second=0, microsecond=0)
+
+    quarter_apps = all_applications.filter(applied_at__gte=quarter_start).count()
+    prev_quarter_apps = all_applications.filter(applied_at__gte=prev_quarter_start, applied_at__lt=prev_quarter_end).count()
+    quarter_app_growth = round(((quarter_apps - prev_quarter_apps) / prev_quarter_apps * 100)) if prev_quarter_apps > 0 else (100 if quarter_apps > 0 else 0)
+
+    quarter_hires = all_applications.filter(stage='HIRED', applied_at__gte=quarter_start).count()
+    prev_quarter_hires = all_applications.filter(stage='HIRED', applied_at__gte=prev_quarter_start, applied_at__lt=prev_quarter_end).count()
+    quarter_hire_growth = round(((quarter_hires - prev_quarter_hires) / prev_quarter_hires * 100)) if prev_quarter_hires > 0 else (100 if quarter_hires > 0 else 0)
+
+    context = {
+        # KPIs
+        'active_jobs_count': active_jobs_count,
+        'pipeline_count': pipeline_count,
+        'hires_count': hires_count,
+        'avg_hire_score': round(avg_hire_score),
+        'hires_delta': hires_delta,
+        'candidates_delta': candidates_delta,
+        'total_candidates_count': all_candidates.count(),
+        # Funnel
+        'funnel_json': json.dumps(funnel_data),
+        # Trend (all ranges for client-side switching)
+        'all_trend_json': json.dumps(all_trend_data),
+        # Charts
+        'category_json': json.dumps(category_data),
+        'score_dist_json': json.dumps(score_dist),
+        # AI
+        'ai_analyzed_count': ai_analyzed_count,
+        'ai_success_rate': ai_success_rate,
+        'ai_avg_score': round(ai_avg_score),
+        # Top Jobs
+        'top_jobs': top_jobs,
+        # Team
+        'team_members': team_members,
+        # Quarter Stats
+        'quarter_apps': quarter_apps,
+        'prev_quarter_apps': prev_quarter_apps,
+        'quarter_app_growth': quarter_app_growth,
+        'quarter_hires': quarter_hires,
+        'prev_quarter_hires': prev_quarter_hires,
+        'quarter_hire_growth': quarter_hire_growth,
+    }
+
+    return render(request, 'users/analytics.html', context)
+

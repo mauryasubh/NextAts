@@ -1,0 +1,4 @@
+python manage.py runserver  
+
+
+celery -A core worker --loglevel=info -P solo

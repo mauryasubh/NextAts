@@ -1,9 +1,9 @@
-<a href="{% url 'jobs:detail' job.pk %}" data-id="{{ job.id }}" class="job-card dash-card p-4 group hover:-translate-y-1 hover:border-brand-500/50 transition flex flex-col outline-none overflow-hidden">
+<a href="{% url 'jobs:detail' job.pk %}" data-id="{{ job.id }}" class="job-card dash-card p-3 group hover:-translate-y-1 hover:border-brand-500/50 transition flex flex-col outline-none overflow-hidden">
     
     <!-- Card Header -->
-    <div class="card-header flex justify-between items-start mb-3">
-        <div class="w-10 h-10 rounded-xl bg-brand-100 text-brand-600 dark:bg-brand-900/30 dark:text-brand-400 flex items-center justify-center shrink-0">
-            <i class="ph-fill ph-briefcase text-xl"></i>
+    <div class="card-header flex justify-between items-start mb-2">
+        <div class="w-9 h-9 rounded-xl bg-brand-100 text-brand-600 dark:bg-brand-900/30 dark:text-brand-400 flex items-center justify-center shrink-0">
+            <i class="ph-fill ph-briefcase text-lg"></i>
         </div>
         <div class="flex flex-col items-end gap-1">
             {% if job.status == 'ACTIVE' %}
@@ -19,12 +19,12 @@
 
     <!-- Card Body -->
     <div class="card-body">
-        <h3 class="text-sm font-bold text-gray-900 dark:text-white mb-1 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors line-clamp-1 truncate">{{ job.title }}</h3>
-        <p class="description text-[0.75rem] g-sub-text line-clamp-2 mb-4 h-9 overflow-hidden">{{ job.description }}</p>
+        <h3 class="text-[0.8rem] font-bold text-gray-900 dark:text-white mb-0.5 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors line-clamp-1 truncate">{{ job.title }}</h3>
+        <p class="description text-[0.7rem] g-sub-text line-clamp-1 mb-2 overflow-hidden">{{ job.description }}</p>
     </div>
 
     <!-- Card Footer -->
-    <div class="card-footer pt-3 border-t g-divider flex items-center justify-between mt-auto">
+    <div class="card-footer pt-2 border-t g-divider flex items-center justify-between mt-auto">
         <div class="flex items-center gap-1.5 text-[0.65rem] font-bold text-gray-500 dark:text-gray-400">
             <i class="ph-fill ph-users text-xs"></i> {{ job.applications.count }} <span class="hidden sm:inline">Candidates</span>
         </div>

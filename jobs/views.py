@@ -125,9 +125,20 @@ def job_edit(request, pk):
 def job_detail(request, pk):
     job = get_object_or_404(JobRequisition, pk=pk, client_company__workspace=request.user.workspace)
     applications = job.applications.select_related('candidate').all()
+    
+    # Pre-compute stage counts for column headers
+    sourced_count = sum(1 for a in applications if a.stage == 'SOURCED')
+    interviewing_count = sum(1 for a in applications if a.stage == 'INTERVIEWING')
+    offer_count = sum(1 for a in applications if a.stage in ('OFFER', 'HIRED'))
+    rejected_count = sum(1 for a in applications if a.stage == 'REJECTED')
+    
     return render(request, 'jobs/detail.html', {
         'job': job,
-        'applications': applications
+        'applications': applications,
+        'sourced_count': sourced_count,
+        'interviewing_count': interviewing_count,
+        'offer_count': offer_count,
+        'rejected_count': rejected_count,
     })
 
 @login_required
@@ -154,3 +165,142 @@ def update_job_status(request, pk):
             return JsonResponse({'status': 'success'})
             
     return JsonResponse({'status': 'error', 'message': 'Invalid request'}, status=400)
+
+@login_required
+def ai_insights(request, pk):
+    """AI Insights page — shows AI-driven analysis of candidates matched to this job."""
+    job = get_object_or_404(JobRequisition, pk=pk, client_company__workspace=request.user.workspace)
+    applications = job.applications.select_related('candidate').all()
+    
+    analyzed_apps = [a for a in applications if a.ai_analysis_done]
+    pending_apps = [a for a in applications if not a.ai_analysis_done]
+    
+    insights = []
+    for app in analyzed_apps:
+        insights.append({
+            'application': app,
+            'candidate': app.candidate,
+            'overall_score': app.ai_match_score or 0,
+            'skills_score': app.ai_skills_score or 0,
+            'experience_score': app.ai_experience_score or 0,
+            'culture_score': app.ai_culture_score or 0,
+            'resume_score': app.ai_resume_score or 0,
+            'matched_skills': app.ai_matched_skills or [],
+            'missing_skills': app.ai_missing_skills or [],
+            'strengths': app.ai_strengths or [],
+            'gaps': app.ai_gaps or [],
+            'recommendation': app.ai_recommendation or 'Pending',
+            'experience_years': app.ai_experience_years or 0,
+            'culture_fit': app.ai_culture_fit or 'N/A',
+            'is_pending': False,
+        })
+    
+    for app in pending_apps:
+        insights.append({
+            'application': app,
+            'candidate': app.candidate,
+            'overall_score': 0,
+            'skills_score': 0,
+            'experience_score': 0,
+            'culture_score': 0,
+            'resume_score': 0,
+            'matched_skills': [],
+            'missing_skills': [],
+            'strengths': [],
+            'gaps': [],
+            'recommendation': 'Pending',
+            'experience_years': 0,
+            'culture_fit': 'N/A',
+            'is_pending': True,
+        })
+    
+    # Sort by score descending (ranked high to low)
+    insights.sort(key=lambda x: x['overall_score'], reverse=True)
+    
+    # Add rank numbers
+    rank = 1
+    for item in insights:
+        if not item['is_pending']:
+            item['rank'] = rank
+            rank += 1
+        else:
+            item['rank'] = '-'
+        
+    active_task = job.analysis_tasks.filter(status='PROCESSING').first()
+    
+    return render(request, 'jobs/ai_insights.html', {
+        'job': job,
+        'insights': insights,
+        'total_candidates': applications.count(),
+        'analyzed_count': len(analyzed_apps),
+        'pending_count': len(pending_apps),
+        'is_processing': active_task is not None,
+        'active_task': active_task,
+    })
+
+@login_required
+def trigger_analysis(request, pk):
+    if request.method == 'POST':
+        job = get_object_or_404(JobRequisition, pk=pk, client_company__workspace=request.user.workspace)
+        from .models import JobAnalysisTask
+        from .tasks import analyze_job_candidates
+        
+        # Check if already running
+        if job.analysis_tasks.filter(status='PROCESSING').exists():
+            return JsonResponse({'status': 'error', 'message': 'Analysis already running.'}, status=400)
+            
+        tracker = JobAnalysisTask.objects.create(job=job)
+        analyze_job_candidates.delay(str(job.id), str(tracker.id))
+        
+        return JsonResponse({'status': 'success'})
+    return JsonResponse({'status': 'error', 'message': 'Invalid method'}, status=405)
+
+@login_required
+def trigger_analysis_single(request, pk, app_id):
+    if request.method == 'POST':
+        job = get_object_or_404(JobRequisition, pk=pk, client_company__workspace=request.user.workspace)
+        from .tasks import analyze_single_application
+        from candidates.models import Application
+        
+        app = get_object_or_404(Application, id=app_id, job=job)
+        if not app.ai_analysis_done:
+            analyze_single_application.delay(str(app.id))
+            return JsonResponse({'status': 'success'})
+        return JsonResponse({'status': 'error', 'message': 'Already analyzed.'}, status=400)
+    return JsonResponse({'status': 'error', 'message': 'Invalid method'}, status=405)
+
+@login_required
+def analysis_status(request, pk):
+    job = get_object_or_404(JobRequisition, pk=pk, client_company__workspace=request.user.workspace)
+    applications = job.applications.all()
+    analyzed_count = applications.filter(ai_analysis_done=True).count()
+    total_count = applications.count()
+    pending_count = total_count - analyzed_count
+    
+    active_task = job.analysis_tasks.filter(status='PROCESSING').first()
+    is_processing = active_task is not None
+    progress_pct = 0
+    
+    if is_processing and active_task.total_profiles > 0:
+        # Calculate approximate progress based on pending apps delta
+        initial_pending = active_task.total_profiles
+        current_pending = applications.filter(ai_analysis_done=False, candidate__resume__isnull=False).exclude(candidate__resume='').count()
+        processed = initial_pending - current_pending
+        progress_pct = int((processed / initial_pending) * 100)
+        
+        if progress_pct >= 100 and current_pending > 0:
+            progress_pct = 99
+        elif current_pending == 0:
+            progress_pct = 100
+            active_task.status = 'COMPLETED'
+            active_task.save(update_fields=['status'])
+            is_processing = False
+
+    return JsonResponse({
+        'total': total_count,
+        'analyzed': analyzed_count,
+        'pending': pending_count,
+        'is_processing': is_processing,
+        'progress_pct': progress_pct
+    })
+

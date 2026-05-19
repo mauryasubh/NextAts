@@ -36,6 +36,8 @@ class Candidate(models.Model):
     
     # Files
     resume = models.FileField(upload_to='resumes/', blank=True, null=True)
+    resume_text = models.TextField(blank=True, null=True, help_text="Cached parsed text from the resume.")
+    resume_hash = models.CharField(max_length=64, blank=True, null=True, help_text="SHA-256 hash of the resume to detect changes.")
     
     # Store the parsed resume AI data
     parsed_skills = models.JSONField(default=dict, blank=True)
@@ -69,6 +71,26 @@ class Application(models.Model):
         blank=True,
         help_text="Match percentile (0-100) calculated by AI Engine."
     )
+    
+    # AI Analysis tracking
+    ai_analysis_done = models.BooleanField(default=False)
+    ai_analysis_started_at = models.DateTimeField(null=True, blank=True)
+    ai_analysis_completed_at = models.DateTimeField(null=True, blank=True)
+    ai_analysis_error = models.TextField(blank=True, null=True)
+
+    # Detailed AI results (replaces dummy data)
+    ai_skills_score = models.IntegerField(null=True, blank=True)
+    ai_experience_score = models.IntegerField(null=True, blank=True)
+    ai_culture_score = models.IntegerField(null=True, blank=True)
+    ai_resume_score = models.IntegerField(null=True, blank=True)
+    ai_matched_skills = models.JSONField(default=list, blank=True)
+    ai_missing_skills = models.JSONField(default=list, blank=True)
+    ai_strengths = models.JSONField(default=list, blank=True)
+    ai_gaps = models.JSONField(default=list, blank=True)
+    ai_recommendation = models.CharField(max_length=50, blank=True, null=True)
+    ai_experience_years = models.IntegerField(null=True, blank=True)
+    ai_culture_fit = models.CharField(max_length=20, blank=True, null=True)
+    ai_summary = models.TextField(blank=True, null=True)
     
     applied_at = models.DateTimeField(auto_now_add=True)
 

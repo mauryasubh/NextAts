@@ -3,9 +3,15 @@
 <div class="max-w-[1400px] mx-auto space-y-6 pb-20" x-data="{ resumeOpen: false }">
     
     <!-- Breadcrumbs -->
+    {% if from_job_id %}
+    <a href="{% url 'jobs:detail' from_job_id %}" class="inline-flex items-center gap-2 text-xs font-bold text-gray-500 hover:text-brand-600 transition-colors">
+        <i class="ph ph-arrow-left"></i> Back to Job Pipeline
+    </a>
+    {% else %}
     <a href="{% url 'candidates:list' %}" class="inline-flex items-center gap-2 text-xs font-bold text-gray-500 hover:text-brand-600 transition-colors">
         <i class="ph ph-arrow-left"></i> Back to Candidate Directory
     </a>
+    {% endif %}
 
     <!-- Profile Header -->
     <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6">

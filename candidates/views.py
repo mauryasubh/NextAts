@@ -122,9 +122,11 @@ def candidate_edit(request, pk):
 def candidate_detail(request, pk):
     candidate = get_object_or_404(Candidate, pk=pk, workspace=request.user.workspace)
     applications = candidate.applications.all()
+    from_job_id = request.GET.get('from_job')
     return render(request, 'candidates/detail.html', {
         'candidate': candidate,
-        'applications': applications
+        'applications': applications,
+        'from_job_id': from_job_id,
     })
 
 @login_required
@@ -186,3 +188,12 @@ def search_pool(request, job_id):
         } for c in candidates[:10]  # Limit to 10 for performance
     ]
     return JsonResponse({'results': results})
+
+@login_required
+def remove_from_job(request, pk):
+    """Remove a candidate's application from a job (delete the Application record)."""
+    if request.method == 'POST':
+        application = get_object_or_404(Application, pk=pk, candidate__workspace=request.user.workspace)
+        application.delete()
+        return JsonResponse({'status': 'success'})
+    return JsonResponse({'status': 'error', 'message': 'Invalid request'}, status=400)

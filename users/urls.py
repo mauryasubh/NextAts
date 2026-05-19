@@ -5,6 +5,7 @@ app_name = 'users'
 
 urlpatterns = [
     path('settings/', views.settings_view, name='settings'),
+    path('analytics/', views.analytics_view, name='analytics'),
     path('team/', views.team_list_view, name='team'),
     path('team/invite/', views.invite_member, name='team_invite'),
     path('team/remove/', views.remove_member, name='team_remove'),

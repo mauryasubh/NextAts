@@ -42,7 +42,7 @@
 
     <!-- Page Title -->
     <div>
-        <h1 class="text-2xl font-bold logo-text mb-0.5 text-gray-900 dark:text-white">Good morning, {{ request.user.first_name }}.</h1>
+        <h1 class="text-2xl font-bold logo-text mb-0.5 text-gray-900 dark:text-white">{{ greeting }}, {{ request.user.first_name }}.</h1>
         <p class="g-sub-text text-xs">Here is what's happening with your pipeline today.</p>
     </div>
 
@@ -77,13 +77,13 @@
             <div class="text-2xl font-black mb-0.5 logo-text">{{ today_interviews.count }}</div>
             <div class="text-[0.65rem] font-bold uppercase tracking-wider g-sub-text">Interviews Today</div>
         </div>
-        <!-- Metric 4: AI Highlights (Placeholder for now) -->
+        <!-- Metric 4: AI Highlights -->
         <div class="dash-card p-5 group hover:-translate-y-1">
             <div class="w-10 h-10 rounded-xl bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400 flex items-center justify-center mb-3">
                 <i class="ph-fill ph-brain text-xl"></i>
             </div>
-            <div class="text-3xl font-black mb-1 logo-text">--</div>
-            <div class="text-sm font-semibold g-sub-text">AI Highlights Ready</div>
+            <div class="text-3xl font-black mb-1 logo-text">{{ strong_ai_matches }}</div>
+            <div class="text-sm font-semibold g-sub-text">Strong AI Matches</div>
         </div>
     </div>
 

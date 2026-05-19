@@ -1,0 +1,405 @@
+[
+{
+    "model": "frontend.contactrequest",
+    "pk": 1,
+    "fields": {
+        "name": "subh",
+        "company_name": "tetsign",
+        "email": "geo2@gmail.com",
+        "message": "efcfe",
+        "created_at": "2026-04-18T07:22:06.566Z",
+        "is_processed": false
+    }
+},
+{
+    "model": "frontend.contactrequest",
+    "pk": 2,
+    "fields": {
+        "name": "sdwfeht",
+        "company_name": "wegth",
+        "email": "wregrht@sgr",
+        "message": "dwefgr",
+        "created_at": "2026-04-19T14:55:47.334Z",
+        "is_processed": false
+    }
+},
+{
+    "model": "users.workspace",
+    "pk": "9bee5072-acc8-464f-983f-1afa8462831e",
+    "fields": {
+        "name": "openai",
+        "plan": "GROWTH",
+        "subscription_status": "TRIAL",
+        "plan_started_at": "2026-04-18T10:35:09.219Z",
+        "trial_ends_at": "2027-02-28T11:14:18Z",
+        "created_at": "2026-04-18T07:14:00.640Z",
+        "is_active": true
+    }
+},
+{
+    "model": "users.workspace",
+    "pk": "a68bfd22-ba94-4eaa-8117-23b0ed3dd4e7",
+    "fields": {
+        "name": "test-1",
+        "plan": "STARTER",
+        "subscription_status": "ACTIVE",
+        "plan_started_at": "2026-04-18T10:35:09.219Z",
+        "trial_ends_at": "2026-12-31T06:48:25Z",
+        "created_at": "2026-04-18T06:48:26.716Z",
+        "is_active": true
+    }
+},
+{
+    "model": "users.workspace",
+    "pk": "ae82c58c-96ae-49b8-8431-ca3764923af4",
+    "fields": {
+        "name": "startup-eco",
+        "plan": "GROWTH",
+        "subscription_status": "TRIAL",
+        "plan_started_at": "2026-04-18T10:35:09.219Z",
+        "trial_ends_at": "2026-06-08T11:14:18.630Z",
+        "created_at": "2026-04-18T06:59:40.501Z",
+        "is_active": true
+    }
+},
+{
+    "model": "users.workspace",
+    "pk": "cde025f9-fe8e-42c3-a467-a3ac3a3b7b45",
+    "fields": {
+        "name": "DCA",
+        "plan": "STARTER",
+        "subscription_status": "ACTIVE",
+        "plan_started_at": "2026-04-18T10:35:09.219Z",
+        "trial_ends_at": null,
+        "created_at": "2026-04-18T09:38:14.491Z",
+        "is_active": true
+    }
+},
+{
+    "model": "users.department",
+    "pk": "06cdd8b5-e465-4e04-9784-af39c3e9fc1c",
+    "fields": {
+        "workspace": "9bee5072-acc8-464f-983f-1afa8462831e",
+        "name": "QA",
+        "created_at": "2026-04-19T17:32:15.446Z"
+    }
+},
+{
+    "model": "users.department",
+    "pk": "46cf22ad-7bd6-48a6-995b-45e13f3cc25a",
+    "fields": {
+        "workspace": "9bee5072-acc8-464f-983f-1afa8462831e",
+        "name": "Marketing",
+        "created_at": "2026-04-26T07:00:18.853Z"
+    }
+},
+{
+    "model": "users.department",
+    "pk": "705ef771-3f8a-448a-8ecd-719d79225c59",
+    "fields": {
+        "workspace": "9bee5072-acc8-464f-983f-1afa8462831e",
+        "name": "Python -Tech",
+        "created_at": "2026-04-19T16:12:44.755Z"
+    }
+},
+{
+    "model": "users.department",
+    "pk": "9e97204d-2367-4a6e-a032-ef25ba165840",
+    "fields": {
+        "workspace": "9bee5072-acc8-464f-983f-1afa8462831e",
+        "name": "HR",
+        "created_at": "2026-04-23T16:24:09.301Z"
+    }
+},
+{
+    "model": "users.department",
+    "pk": "a2de2d89-6fdd-4234-9cd5-78d0e72052e4",
+    "fields": {
+        "workspace": "9bee5072-acc8-464f-983f-1afa8462831e",
+        "name": "Sales",
+        "created_at": "2026-04-19T18:00:34.450Z"
+    }
+},
+{
+    "model": "users.department",
+    "pk": "bc51a8c8-2715-4594-9844-b366ead72bae",
+    "fields": {
+        "workspace": "9bee5072-acc8-464f-983f-1afa8462831e",
+        "name": "Engineering",
+        "created_at": "2026-04-19T18:00:34.330Z"
+    }
+},
+{
+    "model": "users.user",
+    "fields": {
+        "password": "pbkdf2_sha256$870000$Mh9b4l0WqhwwgHhqi48SFh$1wqyTas0Wu8iZFmGgzvPHEAMGJZM4qtjdZsV2jZk9Vs=",
+        "last_login": "2026-05-09T11:14:54.029Z",
+        "is_superuser": true,
+        "username": "admin",
+        "first_name": "",
+        "last_name": "",
+        "is_staff": true,
+        "is_active": true,
+        "date_joined": "2026-04-18T06:29:07.515Z",
+        "workspace": null,
+        "role": "RECRUITER",
+        "email": "admin@gmail.com",
+        "groups": [],
+        "user_permissions": []
+    }
+},
+{
+    "model": "users.user",
+    "fields": {
+        "password": "pbkdf2_sha256$1200000$hnEhV8a306tqE0JAiz5or5$4AH4qIyQRJaf0/SWCge/CxO0RHB5+m2n50JOjNYYVgk=",
+        "last_login": null,
+        "is_superuser": false,
+        "username": "test-1",
+        "first_name": "test-1",
+        "last_name": "",
+        "is_staff": true,
+        "is_active": true,
+        "date_joined": "2026-04-18T06:49:05Z",
+        "workspace": "a68bfd22-ba94-4eaa-8117-23b0ed3dd4e7",
+        "role": "RECRUITER",
+        "email": "test1@gmail.com",
+        "groups": [],
+        "user_permissions": []
+    }
+},
+{
+    "model": "users.user",
+    "fields": {
+        "password": "pbkdf2_sha256$1200000$bPbJ8QLMTOPlF6ql7qmVlV$N+lpY519V1YBinSGEwpTGtNfWHWlnuHxWkBWNqUcxao=",
+        "last_login": "2026-04-18T09:41:05.332Z",
+        "is_superuser": false,
+        "username": "eco@gmail.com",
+        "first_name": "test2",
+        "last_name": "paul",
+        "is_staff": false,
+        "is_active": true,
+        "date_joined": "2026-04-18T06:59:40.501Z",
+        "workspace": "ae82c58c-96ae-49b8-8431-ca3764923af4",
+        "role": "ADMIN",
+        "email": "eco@gmail.com",
+        "groups": [],
+        "user_permissions": []
+    }
+},
+{
+    "model": "users.user",
+    "fields": {
+        "password": "pbkdf2_sha256$870000$VT4WOqu0lbVevSYjp8bEMb$1sx2PPxAquE83k1e8jxKMOYVPSO7y/gZq/8Yl7GwjKE=",
+        "last_login": "2026-05-09T11:16:19.166Z",
+        "is_superuser": false,
+        "username": "geo2@gmail.com",
+        "first_name": "maurya",
+        "last_name": "subh",
+        "is_staff": false,
+        "is_active": true,
+        "date_joined": "2026-04-18T07:14:00.643Z",
+        "workspace": "9bee5072-acc8-464f-983f-1afa8462831e",
+        "role": "ADMIN",
+        "email": "geo2@gmail.com",
+        "groups": [],
+        "user_permissions": []
+    }
+},
+{
+    "model": "users.user",
+    "fields": {
+        "password": "pbkdf2_sha256$1200000$6lXr111k9N88vSMEonFBbu$T7p9rE3am/wIR4jUQSE70VtuFo1qtVlUQ9UIM72tOoI=",
+        "last_login": "2026-04-18T09:38:16.191Z",
+        "is_superuser": false,
+        "username": "subhashmaurya830@gmail.com",
+        "first_name": "test3",
+        "last_name": "maurya",
+        "is_staff": false,
+        "is_active": true,
+        "date_joined": "2026-04-18T09:38:14.496Z",
+        "workspace": "cde025f9-fe8e-42c3-a467-a3ac3a3b7b45",
+        "role": "ADMIN",
+        "email": "subhashmaurya830@gmail.com",
+        "groups": [],
+        "user_permissions": []
+    }
+},
+{
+    "model": "users.user",
+    "fields": {
+        "password": "pbkdf2_sha256$1200000$ViA2HKN1xgNJmQz8fBPXpf$U9/w7ehhoVrYjc9LmBc8qYWgJmFPLw2OE5FG/f4v2hg=",
+        "last_login": null,
+        "is_superuser": false,
+        "username": "test34@gmail.com",
+        "first_name": "new_test",
+        "last_name": "testest",
+        "is_staff": false,
+        "is_active": true,
+        "date_joined": "2026-04-20T14:21:08.513Z",
+        "workspace": "9bee5072-acc8-464f-983f-1afa8462831e",
+        "role": "SUB_ADMIN",
+        "email": "test34@gmail.com",
+        "groups": [],
+        "user_permissions": []
+    }
+},
+{
+    "model": "users.user",
+    "fields": {
+        "password": "pbkdf2_sha256$1200000$Gy28vImCtQredFiMyME9UN$xQx+Jj+Egj3nAp6H/Fuwz9+wYUvu2hQBPDjn8IceNZ8=",
+        "last_login": null,
+        "is_superuser": false,
+        "username": "rahul@gmail.com",
+        "first_name": "rahul",
+        "last_name": "aaa",
+        "is_staff": false,
+        "is_active": true,
+        "date_joined": "2026-04-20T15:15:42.870Z",
+        "workspace": "9bee5072-acc8-464f-983f-1afa8462831e",
+        "role": "MANAGER",
+        "email": "rahul@gmail.com",
+        "groups": [],
+        "user_permissions": []
+    }
+},
+{
+    "model": "users.user",
+    "fields": {
+        "password": "pbkdf2_sha256$1200000$XUjbXBlKyHiEF6XZEiuHTZ$GlNM74XKnsCPVSAZ0XueQ2S36TX+NwJkS314rttekKc=",
+        "last_login": null,
+        "is_superuser": false,
+        "username": "gsrgvs@gmail.com",
+        "first_name": "bdbbd",
+        "last_name": "dtzbhd",
+        "is_staff": false,
+        "is_active": true,
+        "date_joined": "2026-04-20T15:16:16.423Z",
+        "workspace": "9bee5072-acc8-464f-983f-1afa8462831e",
+        "role": "RECRUITER",
+        "email": "gsrgvs@gmail.com",
+        "groups": [],
+        "user_permissions": []
+    }
+},
+{
+    "model": "users.user",
+    "fields": {
+        "password": "pbkdf2_sha256$1200000$N1EvK0XxlAymAoqJMN05BQ$QQLXVWFXrZnec5R83eMZHxO6cfYhnjW1N0U0Ctg12hE=",
+        "last_login": null,
+        "is_superuser": false,
+        "username": "bdsd@gmail.com",
+        "first_name": "gsgh",
+        "last_name": "dzbfbb",
+        "is_staff": false,
+        "is_active": true,
+        "date_joined": "2026-04-20T15:16:56.043Z",
+        "workspace": "9bee5072-acc8-464f-983f-1afa8462831e",
+        "role": "INTERVIEWER",
+        "email": "bdsd@gmail.com",
+        "groups": [],
+        "user_permissions": []
+    }
+},
+{
+    "model": "users.departmentallocation",
+    "pk": 7,
+    "fields": {
+        "user": [
+            "test34@gmail.com"
+        ],
+        "department": "06cdd8b5-e465-4e04-9784-af39c3e9fc1c",
+        "allocation_percentage": 20
+    }
+},
+{
+    "model": "users.departmentallocation",
+    "pk": 8,
+    "fields": {
+        "user": [
+            "test34@gmail.com"
+        ],
+        "department": "705ef771-3f8a-448a-8ecd-719d79225c59",
+        "allocation_percentage": 20
+    }
+},
+{
+    "model": "users.departmentallocation",
+    "pk": 9,
+    "fields": {
+        "user": [
+            "test34@gmail.com"
+        ],
+        "department": "bc51a8c8-2715-4594-9844-b366ead72bae",
+        "allocation_percentage": 20
+    }
+},
+{
+    "model": "users.departmentallocation",
+    "pk": 10,
+    "fields": {
+        "user": [
+            "test34@gmail.com"
+        ],
+        "department": "a2de2d89-6fdd-4234-9cd5-78d0e72052e4",
+        "allocation_percentage": 10
+    }
+},
+{
+    "model": "users.departmentallocation",
+    "pk": 21,
+    "fields": {
+        "user": [
+            "rahul@gmail.com"
+        ],
+        "department": "06cdd8b5-e465-4e04-9784-af39c3e9fc1c",
+        "allocation_percentage": 20
+    }
+},
+{
+    "model": "users.departmentallocation",
+    "pk": 22,
+    "fields": {
+        "user": [
+            "rahul@gmail.com"
+        ],
+        "department": "bc51a8c8-2715-4594-9844-b366ead72bae",
+        "allocation_percentage": 20
+    }
+},
+{
+    "model": "users.departmentallocation",
+    "pk": 23,
+    "fields": {
+        "user": [
+            "rahul@gmail.com"
+        ],
+        "department": "a2de2d89-6fdd-4234-9cd5-78d0e72052e4",
+        "allocation_percentage": 18
+    }
+},
+{
+    "model": "jobs.clientcompany",
+    "pk": "1fa92430-c182-4673-9262-259129aa8343",
+    "fields": {
+        "workspace": "cde025f9-fe8e-42c3-a467-a3ac3a3b7b45",
+        "name": "Internal Hiring",
+        "website": null,
+        "created_at": "2026-04-18T09:38:14.496Z"
+    }
+},
+{
+    "model": "jobs.clientcompany",
+    "pk": "d9750a70-5ad5-4602-befd-700da7cadc7a",
+    "fields": {
+        "workspace": "9bee5072-acc8-464f-983f-1afa8462831e",
+        "name": "Internal Hiring",
+        "website": null,
+        "created_at": "2026-04-18T08:14:07.122Z"
+    }
+},
+{
+    "model": "jobs.jobrequisition",
+    "pk": "3ff61db9-31cd-43fd-af3c-98ee728d1017",
+    "fields": {
+        "client_company": "d9750a70-5ad5-4602-befd-700da7cadc7a",
+        "title": 

@@ -1,6 +1,7 @@
 {% extends 'base_app.html' %}
 {% block content %}
-<div class="h-full flex flex-col space-y-4" x-data="{ 
+<div class="h-full flex flex-col space-y-2" x-data="{ 
+    aiRankedMode: false,
     showPool: false, 
     poolQuery: '', 
     poolResults: [],
@@ -17,7 +18,7 @@
 
     <!-- System Messages -->
     {% if messages %}
-        <div class="mb-4 space-y-2">
+        <div class="mb-2 space-y-1">
             {% for message in messages %}
                 <div class="px-3 py-2 rounded-xl text-xs font-semibold {% if message.tags == 'error' %}bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400{% else %}bg-green-50 text-green-600 dark:bg-green-500/10 dark:text-green-400{% endif %}">
                     {{ message }}
@@ -27,47 +28,59 @@
     {% endif %}
 
     <!-- ── Compact Header ── -->
-    <div class="shrink-0 flex items-center justify-between gap-4 py-2 border-b g-divider">
-        <div class="flex-1 min-w-0">
-            <div class="flex items-center gap-2 text-[0.65rem] font-bold text-gray-500 mb-1">
-                <a href="{% url 'jobs:list' %}" class="hover:text-brand-500 transition-colors uppercase tracking-tight">&larr; Back to Pipelines</a>
-                <span class="opacity-30">/</span>
-                <span class="uppercase tracking-tight">{{ job.get_category_display }}</span>
-            </div>
-            <div class="flex items-center gap-3">
-                <h1 class="text-xl sm:text-2xl font-black logo-text truncate">{{ job.title }}</h1>
-                {% if job.status == 'ACTIVE' %}
-                    <span class="text-[0.6rem] font-black px-2 py-0.5 bg-green-100 text-green-700 dark:bg-green-500/10 dark:text-green-400 rounded-md">ACTIVE</span>
-                {% else %}
-                    <span class="text-[0.6rem] font-black px-2 py-0.5 bg-red-100 text-red-700 dark:bg-red-500/10 dark:text-red-400 rounded-md">{{ job.status }}</span>
-                {% endif %}
-            </div>
-            <p class="g-sub-text text-[0.7rem] line-clamp-1 mt-0.5 font-medium opacity-80 max-w-xl">{{ job.description }}</p>
+    <div class="shrink-0 flex items-center justify-between gap-3 py-1 px-1 border-b g-divider">
+        <div class="flex items-center gap-3 min-w-0">
+            <a href="{% url 'jobs:list' %}" class="text-[0.6rem] font-bold text-gray-500 hover:text-brand-500 transition-colors uppercase tracking-tight whitespace-nowrap shrink-0">&larr; Back</a>
+            <span class="text-gray-300 dark:text-gray-600 shrink-0">/</span>
+            <h1 class="text-sm font-black logo-text truncate">{{ job.title }}</h1>
+            {% if job.status == 'ACTIVE' %}
+                <span class="text-[0.55rem] font-black px-1.5 py-0.5 bg-green-100 text-green-700 dark:bg-green-500/10 dark:text-green-400 rounded shrink-0">ACTIVE</span>
+            {% else %}
+                <span class="text-[0.55rem] font-black px-1.5 py-0.5 bg-red-100 text-red-700 dark:bg-red-500/10 dark:text-red-400 rounded shrink-0">{{ job.status }}</span>
+            {% endif %}
         </div>
         
-        <div class="flex items-center gap-2 shrink-0">
-            <button @click="showPool = true" class="px-3 py-2 text-xs font-bold bg-white text-gray-800 border g-divider dark:bg-white/5 dark:text-gray-200 rounded-lg hover:bg-gray-50 dark:hover:bg-white/10 transition-colors">
-                <i class="ph ph-magnifying-glass mr-1"></i> Choose from Pool
-            </button>
-            <a href="{% url 'jobs:edit' job.pk %}" class="px-3 py-2 text-xs font-bold bg-white text-gray-800 border g-divider dark:bg-white/5 dark:text-gray-200 rounded-lg hover:bg-gray-50 dark:hover:bg-white/10 transition-colors">
-                <i class="ph ph-pencil-simple mr-1"></i> Edit
+        <div class="flex items-center gap-1.5 shrink-0">
+            <!-- AI Insights Button -->
+            <a href="{% url 'jobs:ai_insights' job.pk %}" class="px-2.5 py-1.5 text-[0.65rem] font-bold bg-gradient-to-r from-violet-500/10 to-fuchsia-500/10 text-violet-600 dark:text-violet-400 border border-violet-500/20 rounded-lg hover:from-violet-500/20 hover:to-fuchsia-500/20 transition-all flex items-center gap-1.5 group">
+                <i class="ph ph-sparkle text-sm group-hover:animate-pulse"></i> AI Insights
             </a>
-            <a href="{% url 'candidates:create' %}?job_id={{ job.id }}" class="g-btn px-4 py-2 text-xs rounded-lg font-bold shadow-lg shadow-brand-500/20 whitespace-nowrap hover:-translate-y-0.5 transition-all">
-                + Add Candidate
+            <!-- AI Ranked Sources Button (Toggle) -->
+            <button @click="aiRankedMode = !aiRankedMode; $nextTick(() => toggleAIRankedSources(aiRankedMode))" 
+                :class="aiRankedMode ? 'from-amber-500/25 to-orange-500/25 border-amber-500/50 ring-2 ring-amber-500/20 shadow-lg shadow-amber-500/10' : 'from-amber-500/10 to-orange-500/10 border-amber-500/20'"
+                class="px-2.5 py-1.5 text-[0.65rem] font-bold bg-gradient-to-r text-amber-600 dark:text-amber-400 border rounded-lg hover:from-amber-500/20 hover:to-orange-500/20 transition-all flex items-center gap-1.5 group">
+                <i class="ph ph-chart-bar text-sm" :class="aiRankedMode ? 'animate-pulse' : 'group-hover:animate-pulse'"></i> 
+                <span x-text="aiRankedMode ? 'Ranked ✓' : 'AI Ranked Sources'"></span>
+            </button>
+            <div class="w-px h-5 bg-gray-200 dark:bg-gray-700 mx-0.5"></div>
+            <button @click="showPool = true" class="px-2.5 py-1.5 text-[0.65rem] font-bold bg-white text-gray-700 border g-divider dark:bg-white/5 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-white/10 transition-colors">
+                <i class="ph ph-magnifying-glass mr-0.5"></i> Pool
+            </button>
+            <a href="{% url 'jobs:edit' job.pk %}" class="px-2.5 py-1.5 text-[0.65rem] font-bold bg-white text-gray-700 border g-divider dark:bg-white/5 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-white/10 transition-colors">
+                <i class="ph ph-pencil-simple mr-0.5"></i> Edit
+            </a>
+            <a href="{% url 'candidates:create' %}?job_id={{ job.id }}" class="g-btn px-3 py-1.5 text-[0.65rem] rounded-lg font-bold shadow-lg shadow-brand-500/20 whitespace-nowrap hover:-translate-y-0.5 transition-all">
+                + Add
             </a>
         </div>
     </div>
 
-    <!-- ── Kanban Wrapper ── -->
-    <div class="flex-1 overflow-x-auto pb-6">
-        <div class="flex gap-4 h-full min-w-max items-stretch">
+    <!-- ── Kanban Wrapper — fills remaining viewport height ── -->
+    <div class="flex-1 overflow-x-auto overflow-y-hidden" style="min-height: 0;">
+        <div class="flex gap-4 min-w-max items-stretch" style="height: calc(100vh - 13rem);">
             
             <!-- SOURCED -->
-            <div class="w-80 flex flex-col h-full bg-gray-50/50 dark:bg-white/[0.02] rounded-2xl border g-divider overflow-hidden">
-                <div class="p-4 border-b g-divider flex items-center justify-between bg-white/50 dark:bg-[#050d1e]/50">
+            <div class="w-80 flex flex-col rounded-2xl border overflow-hidden transition-all duration-300"
+                 :class="aiRankedMode ? 'bg-amber-500/[0.03] dark:bg-amber-500/[0.02] border-amber-500/20 ring-1 ring-amber-500/10' : 'bg-gray-50/50 dark:bg-white/[0.02] g-divider'">
+                <div class="px-4 py-3 border-b g-divider flex items-center justify-between shrink-0 transition-all duration-300"
+                     :class="aiRankedMode ? 'bg-gradient-to-r from-amber-500/10 to-orange-500/10 dark:from-amber-500/5 dark:to-orange-500/5' : 'bg-white/50 dark:bg-[#050d1e]/50'">
                     <div class="flex items-center gap-2">
-                        <div class="w-2 h-2 rounded-full bg-blue-500"></div>
-                        <h3 class="text-[0.7rem] font-black uppercase tracking-widest text-gray-500">Sourced</h3>
+                        <div class="w-2 h-2 rounded-full transition-colors duration-300" :class="aiRankedMode ? 'bg-amber-500 animate-pulse' : 'bg-blue-500'"></div>
+                        <h3 class="text-[0.7rem] font-black uppercase tracking-widest text-gray-500" x-text="aiRankedMode ? 'Sourced · AI Ranked' : 'Sourced'"></h3>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <span x-show="aiRankedMode" x-cloak class="text-[0.5rem] font-black px-1.5 py-0.5 bg-amber-500/10 text-amber-500 rounded-md flex items-center gap-1"><i class="ph ph-trophy"></i> Best First</span>
+                        <span class="text-[0.6rem] font-black px-2 py-0.5 rounded-md transition-colors duration-300" :class="aiRankedMode ? 'bg-amber-500/10 text-amber-500' : 'bg-blue-500/10 text-blue-500'">{{ sourced_count }}</span>
                     </div>
                 </div>
                 <div class="kanban-column p-3 space-y-3 flex-1 overflow-y-auto" data-stage="SOURCED">
@@ -80,12 +93,13 @@
             </div>
 
             <!-- INTERVIEWING -->
-            <div class="w-80 flex flex-col h-full bg-gray-50/50 dark:bg-white/[0.02] rounded-2xl border g-divider overflow-hidden">
-                <div class="p-4 border-b g-divider flex items-center justify-between bg-white/50 dark:bg-[#050d1e]/50">
+            <div class="w-80 flex flex-col bg-gray-50/50 dark:bg-white/[0.02] rounded-2xl border g-divider overflow-hidden">
+                <div class="px-4 py-3 border-b g-divider flex items-center justify-between bg-white/50 dark:bg-[#050d1e]/50 shrink-0">
                     <div class="flex items-center gap-2">
                         <div class="w-2 h-2 rounded-full bg-purple-500"></div>
                         <h3 class="text-[0.7rem] font-black uppercase tracking-widest text-gray-500">Interviewing</h3>
                     </div>
+                    <span class="text-[0.6rem] font-black px-2 py-0.5 bg-purple-500/10 text-purple-500 rounded-md">{{ interviewing_count }}</span>
                 </div>
                 <div class="kanban-column p-3 space-y-3 flex-1 overflow-y-auto" data-stage="INTERVIEWING">
                     {% for app in applications %}
@@ -97,12 +111,13 @@
             </div>
 
             <!-- OFFER -->
-            <div class="w-80 flex flex-col h-full bg-gray-50/50 dark:bg-white/[0.02] rounded-2xl border g-divider overflow-hidden">
-                <div class="p-4 border-b g-divider flex items-center justify-between bg-white/50 dark:bg-[#050d1e]/50">
+            <div class="w-80 flex flex-col bg-gray-50/50 dark:bg-white/[0.02] rounded-2xl border g-divider overflow-hidden">
+                <div class="px-4 py-3 border-b g-divider flex items-center justify-between bg-white/50 dark:bg-[#050d1e]/50 shrink-0">
                     <div class="flex items-center gap-2">
                         <div class="w-2 h-2 rounded-full bg-green-500"></div>
                         <h3 class="text-[0.7rem] font-black uppercase tracking-widest text-gray-500">Offered / Hired</h3>
                     </div>
+                    <span class="text-[0.6rem] font-black px-2 py-0.5 bg-green-500/10 text-green-500 rounded-md">{{ offer_count }}</span>
                 </div>
                 <div class="kanban-column p-3 space-y-3 flex-1 overflow-y-auto" data-stage="OFFER">
                     {% for app in applications %}
@@ -114,12 +129,13 @@
             </div>
 
             <!-- REJECTED -->
-            <div class="w-80 flex flex-col h-full bg-gray-50/30 dark:bg-white/[0.01] rounded-2xl border g-divider overflow-hidden opacity-60">
-                <div class="p-4 border-b g-divider flex items-center justify-between bg-white/30 dark:bg-[#050d1e]/30">
+            <div class="w-80 flex flex-col bg-gray-50/30 dark:bg-white/[0.01] rounded-2xl border g-divider overflow-hidden opacity-60 hover:opacity-100 transition-opacity">
+                <div class="px-4 py-3 border-b g-divider flex items-center justify-between bg-white/30 dark:bg-[#050d1e]/30 shrink-0">
                     <div class="flex items-center gap-2">
                         <div class="w-2 h-2 rounded-full bg-red-400"></div>
                         <h3 class="text-[0.7rem] font-black uppercase tracking-widest text-gray-500">Rejected</h3>
                     </div>
+                    <span class="text-[0.6rem] font-black px-2 py-0.5 bg-red-500/10 text-red-400 rounded-md">{{ rejected_count }}</span>
                 </div>
                 <div class="kanban-column p-3 space-y-3 flex-1 overflow-y-auto" data-stage="REJECTED">
                     {% for app in applications %}
@@ -196,11 +212,172 @@
 
 </div>
 
+<style>
+    /* Context Menu Styles */
+    .kanban-ctx-menu {
+        position: fixed;
+        z-index: 200;
+        min-width: 200px;
+        background: rgba(255,255,255,0.97);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(0,0,0,0.08);
+        border-radius: 0.75rem;
+        box-shadow: 0 20px 50px -12px rgba(0,0,0,0.15), 0 4px 12px rgba(0,0,0,0.05);
+        padding: 0.35rem;
+        opacity: 0;
+        transform: scale(0.95) translateY(-4px);
+        transform-origin: top left;
+        transition: opacity 0.15s ease, transform 0.15s ease;
+        pointer-events: none;
+    }
+    html.dark .kanban-ctx-menu {
+        background: rgba(8, 16, 35, 0.97);
+        border-color: rgba(255,255,255,0.1);
+        box-shadow: 0 20px 50px -12px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05);
+    }
+    .kanban-ctx-menu.visible {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+        pointer-events: auto;
+    }
+    .ctx-menu-header {
+        padding: 0.5rem 0.75rem 0.4rem;
+        font-size: 0.6rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: #9ca3af;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+        margin-bottom: 0.25rem;
+    }
+    html.dark .ctx-menu-header {
+        border-color: rgba(255,255,255,0.06);
+    }
+    .ctx-menu-item {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        padding: 0.5rem 0.75rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: #374151;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        transition: all 0.15s;
+        border: 1px solid transparent;
+    }
+    html.dark .ctx-menu-item { color: #d1d5db; }
+    .ctx-menu-item:hover {
+        background: #f3f4f6;
+        color: #111827;
+    }
+    html.dark .ctx-menu-item:hover {
+        background: rgba(255,255,255,0.06);
+        color: #fff;
+    }
+    .ctx-menu-item .ctx-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        flex-shrink: 0;
+    }
+    .ctx-menu-item.active-option {
+        opacity: 0.4;
+        pointer-events: none;
+    }
+    .ctx-menu-divider {
+        height: 1px;
+        background: rgba(0,0,0,0.06);
+        margin: 0.25rem 0.5rem;
+    }
+    html.dark .ctx-menu-divider { background: rgba(255,255,255,0.06); }
+
+    /* AI Rank Badge Styles */
+    .ai-rank-badge {
+        position: absolute;
+        top: -4px;
+        left: -4px;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 22px;
+        height: 22px;
+        border-radius: 8px;
+        font-size: 0.55rem;
+        font-weight: 900;
+        line-height: 1;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        animation: rankBadgePop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    }
+    @keyframes rankBadgePop {
+        0% { transform: scale(0) rotate(-20deg); opacity: 0; }
+        100% { transform: scale(1) rotate(0deg); opacity: 1; }
+    }
+    .ai-rank-badge.rank-gold {
+        background: linear-gradient(135deg, #f59e0b, #f97316);
+        color: white;
+        font-size: 0.7rem;
+        box-shadow: 0 2px 12px rgba(245, 158, 11, 0.4);
+    }
+    .ai-rank-badge.rank-silver {
+        background: linear-gradient(135deg, #9ca3af, #6b7280);
+        color: white;
+        font-size: 0.65rem;
+    }
+    .ai-rank-badge.rank-bronze {
+        background: linear-gradient(135deg, #b45309, #92400e);
+        color: #fde68a;
+        font-size: 0.65rem;
+    }
+    .ai-rank-badge.rank-default {
+        background: rgba(107, 114, 128, 0.15);
+        color: #6b7280;
+        font-size: 0.5rem;
+        font-weight: 900;
+    }
+    html.dark .ai-rank-badge.rank-default {
+        background: rgba(255, 255, 255, 0.08);
+        color: #9ca3af;
+    }
+</style>
+
+<!-- Context Menu — teleported to body so it escapes all overflow clipping -->
+<template x-teleport="body">
+    <div id="kanban-ctx-menu" class="kanban-ctx-menu">
+        <div class="ctx-menu-header">Move to stage</div>
+        <div class="ctx-menu-item" data-stage="SOURCED">
+            <span class="ctx-dot" style="background: #3b82f6;"></span> Sourced
+        </div>
+        <div class="ctx-menu-item" data-stage="INTERVIEWING">
+            <span class="ctx-dot" style="background: #a855f7;"></span> Interviewing
+        </div>
+        <div class="ctx-menu-item" data-stage="OFFER">
+            <span class="ctx-dot" style="background: #22c55e;"></span> Offered / Hired
+        </div>
+        <div class="ctx-menu-divider"></div>
+        <div class="ctx-menu-item" data-stage="REJECTED">
+            <span class="ctx-dot" style="background: #ef4444;"></span> Rejected
+        </div>
+        <div class="ctx-menu-divider"></div>
+        <div class="ctx-menu-header">Actions</div>
+        <div class="ctx-menu-item ctx-remove-item" data-action="remove">
+            <i class="ph ph-trash text-red-400" style="font-size: 0.8rem;"></i>
+            <span class="text-red-400">Remove from Job</span>
+        </div>
+    </div>
+</template>
+
 <script>
-    document.addEventListener('DOMContentLoaded', () => {
+    function initKanbanBoard() {
+        console.log("Initializing Kanban Sortable...");
         const columns = document.querySelectorAll('.kanban-column');
         
         columns.forEach(column => {
+            // Prevent duplicate initialization
+            if (column._sortableInitialized) return;
+            column._sortableInitialized = true;
+
             new Sortable(column, {
                 group: 'applications',
                 animation: 200,
@@ -215,30 +392,293 @@
                     const applicationId = item.dataset.id;
                     
                     if (evt.from !== evt.to) {
-                        const formData = new FormData();
-                        formData.append('stage', newStage);
-                        formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
-                        
-                        try {
-                            const res = await fetch(`/candidates/application/${applicationId}/update-stage/`, {
-                                method: 'POST',
-                                body: formData,
-                                headers: {
-                                    'X-CSRFToken': '{{ csrf_token }}'
-                                }
-                            });
-                            const data = await res.json();
-                            if (data.status !== 'success') {
-                                location.reload();
-                            }
-                        } catch (e) {
-                            console.error("Stage update failed", e);
-                            location.reload();
-                        }
+                        // Sortable already moved the DOM element — just persist to server
+                        await updateCandidateStage(applicationId, newStage, false);
                     }
                 }
             });
         });
+
+        // Initialize context menu on cards (small delay to let Alpine teleport render)
+        setTimeout(initContextMenu, 100);
+    }
+
+    // ── Stage Update Helper ──
+    async function updateCandidateStage(applicationId, newStage, moveDOM = false) {
+        if (moveDOM) {
+            const card = document.querySelector(`.dash-card[data-id="${applicationId}"]`);
+            const targetCol = document.querySelector(`.kanban-column[data-stage="${newStage}"]`);
+            if (card && targetCol) {
+                card.style.transition = 'opacity 0.2s, transform 0.2s';
+                card.style.opacity = '0';
+                card.style.transform = 'scale(0.95)';
+                
+                await new Promise(r => setTimeout(r, 200));
+                
+                targetCol.appendChild(card);
+                
+                card.style.opacity = '1';
+                card.style.transform = 'scale(1)';
+            }
+        }
+
+        const formData = new FormData();
+        formData.append('stage', newStage);
+        formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+        
+        try {
+            const res = await fetch(`/candidates/application/${applicationId}/update-stage/`, {
+                method: 'POST',
+                body: formData,
+                headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+            });
+            const data = await res.json();
+            if (data.status !== 'success') {
+                location.reload();
+            }
+        } catch (e) {
+            console.error("Stage update failed", e);
+            location.reload();
+        }
+    }
+
+    // ── Remove from Job Helper ──
+    async function removeFromJob(applicationId) {
+        const card = document.querySelector(`.dash-card[data-id="${applicationId}"]`);
+        if (card) {
+            card.style.transition = 'opacity 0.3s, transform 0.3s';
+            card.style.opacity = '0';
+            card.style.transform = 'scale(0.9) translateY(-10px)';
+        }
+
+        try {
+            const res = await fetch(`/candidates/application/${applicationId}/remove/`, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+            });
+            const data = await res.json();
+            if (data.status === 'success') {
+                setTimeout(() => { if (card) card.remove(); }, 300);
+            } else {
+                if (card) { card.style.opacity = '1'; card.style.transform = ''; }
+                alert(data.message || 'Failed to remove.');
+            }
+        } catch (e) {
+            console.error('Remove failed', e);
+            if (card) { card.style.opacity = '1'; card.style.transform = ''; }
+        }
+    }
+
+    // ── Right-click Context Menu ──
+    let _ctxActiveCardId = null;
+    let _ctxActiveCardStage = null;
+
+    function initContextMenu() {
+        // Menu is teleported to body by Alpine
+        const menu = document.getElementById('kanban-ctx-menu');
+        if (!menu) {
+            console.warn("Context menu not found — retrying in 200ms");
+            setTimeout(initContextMenu, 200);
+            return;
+        }
+
+        // Attach right-click on each kanban card
+        document.querySelectorAll('.kanban-column .dash-card').forEach(card => {
+            if (card._ctxBound) return;
+            card._ctxBound = true;
+
+            card.addEventListener('contextmenu', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                _ctxActiveCardId = this.dataset.id;
+                const col = this.closest('.kanban-column');
+                _ctxActiveCardStage = col ? col.dataset.stage : null;
+
+                // Mark current stage as disabled
+                menu.querySelectorAll('.ctx-menu-item').forEach(item => {
+                    item.classList.toggle('active-option', item.dataset.stage === _ctxActiveCardStage);
+                });
+
+                // Make visible off-screen first to measure
+                menu.style.left = '-9999px';
+                menu.style.top = '-9999px';
+                menu.classList.add('visible');
+
+                // Measure actual dimensions
+                const rect = menu.getBoundingClientRect();
+                const mW = rect.width;
+                const mH = rect.height;
+                const vW = window.innerWidth;
+                const vH = window.innerHeight;
+
+                // Position near cursor, flip if needed
+                let x = e.clientX;
+                let y = e.clientY;
+
+                if (x + mW + 10 > vW) x = x - mW;
+                if (y + mH + 10 > vH) y = y - mH;
+
+                x = Math.max(8, Math.min(x, vW - mW - 8));
+                y = Math.max(8, Math.min(y, vH - mH - 8));
+
+                menu.style.left = x + 'px';
+                menu.style.top = y + 'px';
+            });
+        });
+
+        // Bind click handlers only once
+        if (!menu._clicksBound) {
+            menu._clicksBound = true;
+
+            menu.addEventListener('click', function(e) {
+                const item = e.target.closest('.ctx-menu-item');
+                if (!item) return;
+
+                // Handle remove action
+                if (item.dataset.action === 'remove') {
+                    if (_ctxActiveCardId) {
+                        removeFromJob(_ctxActiveCardId);
+                    }
+                    menu.classList.remove('visible');
+                    return;
+                }
+
+                const targetStage = item.dataset.stage;
+                if (_ctxActiveCardId && targetStage !== _ctxActiveCardStage) {
+                    updateCandidateStage(_ctxActiveCardId, targetStage, true);
+                }
+                menu.classList.remove('visible');
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!menu.contains(e.target)) menu.classList.remove('visible');
+            });
+            document.addEventListener('scroll', () => menu.classList.remove('visible'), true);
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') menu.classList.remove('visible');
+            });
+        }
+    }
+
+    // ── AI Ranked Sources Toggle ──
+    let _originalSourcedOrder = null;  // Stores original DOM order for un-ranking
+
+    function toggleAIRankedSources(isActive) {
+        const sourcedCol = document.querySelector('.kanban-column[data-stage="SOURCED"]');
+        if (!sourcedCol) return;
+
+        const cards = Array.from(sourcedCol.querySelectorAll('.dash-card'));
+        if (cards.length === 0) return;
+
+        if (isActive) {
+            // Save original order (by data-id)
+            _originalSourcedOrder = cards.map(c => c.dataset.id);
+
+            // Sort cards by data-score descending
+            cards.sort((a, b) => {
+                const scoreA = parseInt(a.dataset.score) || 0;
+                const scoreB = parseInt(b.dataset.score) || 0;
+                return scoreB - scoreA;
+            });
+
+            // Animate: fade out, reorder, fade in with rank badges
+            cards.forEach(c => {
+                c.style.transition = 'opacity 0.2s, transform 0.2s';
+                c.style.opacity = '0';
+                c.style.transform = 'scale(0.95) translateY(-5px)';
+            });
+
+            setTimeout(() => {
+                // Re-append in sorted order
+                cards.forEach((card, idx) => {
+                    sourcedCol.appendChild(card);
+                    // Add rank badge
+                    addRankBadge(card, idx + 1);
+                });
+
+                // Staggered fade-in
+                cards.forEach((card, idx) => {
+                    setTimeout(() => {
+                        card.style.opacity = '1';
+                        card.style.transform = 'scale(1) translateY(0)';
+                    }, idx * 80);
+                });
+            }, 250);
+        } else {
+            // Restore original order
+            cards.forEach(c => {
+                c.style.transition = 'opacity 0.15s, transform 0.15s';
+                c.style.opacity = '0.5';
+                c.style.transform = 'scale(0.98)';
+            });
+
+            setTimeout(() => {
+                if (_originalSourcedOrder) {
+                    _originalSourcedOrder.forEach(id => {
+                        const card = sourcedCol.querySelector(`.dash-card[data-id="${id}"]`);
+                        if (card) sourcedCol.appendChild(card);
+                    });
+                }
+
+                // Remove all rank badges
+                sourcedCol.querySelectorAll('.ai-rank-badge').forEach(b => b.remove());
+
+                const restoredCards = sourcedCol.querySelectorAll('.dash-card');
+                restoredCards.forEach((card, idx) => {
+                    setTimeout(() => {
+                        card.style.opacity = '1';
+                        card.style.transform = '';
+                    }, idx * 50);
+                });
+
+                _originalSourcedOrder = null;
+            }, 200);
+        }
+    }
+
+    function addRankBadge(card, rank) {
+        // Remove existing badge if any
+        const existingBadge = card.querySelector('.ai-rank-badge');
+        if (existingBadge) existingBadge.remove();
+
+        const badge = document.createElement('div');
+        badge.className = 'ai-rank-badge';
+
+        if (rank === 1) {
+            badge.innerHTML = '<i class="ph-fill ph-trophy"></i>';
+            badge.classList.add('rank-gold');
+        } else if (rank === 2) {
+            badge.innerHTML = '<i class="ph-fill ph-medal"></i>';
+            badge.classList.add('rank-silver');
+        } else if (rank === 3) {
+            badge.innerHTML = '<i class="ph-fill ph-medal"></i>';
+            badge.classList.add('rank-bronze');
+        } else {
+            badge.textContent = '#' + rank;
+            badge.classList.add('rank-default');
+        }
+
+        // Insert as the first child of the card
+        card.style.position = 'relative';
+        card.insertBefore(badge, card.firstChild);
+    }
+
+    // Initialize on DOMContentLoaded (normal page load)
+    document.addEventListener('DOMContentLoaded', initKanbanBoard);
+
+    // Initialize on HTMX content swap (hx-boost navigation)
+    document.addEventListener('htmx:afterSettle', function(evt) {
+        if (document.querySelector('.kanban-column')) {
+            initKanbanBoard();
+        }
+    });
+
+    // Fallback: also try on htmx:load
+    document.addEventListener('htmx:load', function(evt) {
+        if (document.querySelector('.kanban-column')) {
+            initKanbanBoard();
+        }
     });
 </script>
 {% endblock %}
